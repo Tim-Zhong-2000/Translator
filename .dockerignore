@@ -1,0 +1,7 @@
+.git
+test
+docs
+.vscode
+Dockerfile
+.gitlab-ci.yml
+README.md
