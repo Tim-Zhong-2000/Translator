@@ -4,16 +4,16 @@
  */
 
 import { CacheEngine } from "../abstract/cacheEngine";
-import { MapCacheConfig } from "../type/type";
+import { DestPayload, MapCacheConfig } from "../type/type";
 
-export class MapCache extends CacheEngine<Map<string, string>> {
+export class MapCache extends CacheEngine<Map<string, DestPayload>> {
   constructor(config: MapCacheConfig) {
     super();
-    this.db = new Map<string, string>();  
+    this.db = new Map<string, DestPayload>();  
     this.serivceProviderName = config.serviceProvicerName || "unknown";
   }
 
-  fetch(src: string, srcLang: string, destLang: string): string {
+  fetch(src: string, srcLang: string, destLang: string): DestPayload {
     const result = this.db.get(this.generateHashKey(src, srcLang, destLang));
     if (!result) {
       console.log(`MISS:\t${this.generateHashKey(src, srcLang, destLang)}`);
@@ -23,7 +23,7 @@ export class MapCache extends CacheEngine<Map<string, string>> {
     return result;
   }
 
-  insert(src: string, srcLang: string, destLang: string, dest: string): void {
+  insert(src: string, srcLang: string, destLang: string, dest: DestPayload): void {
     const result = this.db.set(
       this.generateHashKey(src, srcLang, destLang),
       dest

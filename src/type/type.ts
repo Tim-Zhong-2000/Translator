@@ -5,6 +5,12 @@ export interface BaiduTranslatorConfig {
   token: string;
 }
 
+export interface BaiduTranslatorAPIConfig {
+  APPID: string;
+  KEY: string;
+  tts: boolean;
+}
+
 export interface BaiduPayload {
   from: string;
   to: string;
@@ -26,4 +32,15 @@ export interface CacheIdentity {
 export interface MapCacheConfig {
   serviceProvicerName: string; // 翻译服务提供商名称
   saveFilePath?: string;
+}
+
+export interface DestPayload {
+  success: boolean;
+  src: string;
+  dest: string;
+  srcLang: string;
+  destLang: string;
+  tts?: boolean;
+  srcTTS?: string;
+  destTTS?: string;
 }

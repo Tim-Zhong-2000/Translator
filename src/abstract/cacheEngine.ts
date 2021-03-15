@@ -3,19 +3,19 @@
  * @author Tim-Zhong-2000
  */
 import md5 from "md5";
-import { CacheIdentity } from "../type/type";
+import { CacheIdentity, DestPayload } from "../type/type";
 
-export abstract class CacheEngine<T = Map<string, string>> {
+export abstract class CacheEngine<T = Map<string, DestPayload>> {
   db: T = null; // 底层数据结构
   serivceProviderName = "unknown"; // 服务提供商名称
 
-  abstract fetch(src: string, srcLang: string, destLang: string): string;
+  abstract fetch(src: string, srcLang: string, destLang: string): DestPayload;
 
   abstract insert(
     src: string,
     srcLang: string,
     destLang: string,
-    dest: string
+    dest: DestPayload
   ): void;
 
   hash(str: string): string {

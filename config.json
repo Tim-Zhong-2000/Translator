@@ -10,5 +10,16 @@
       "serviceProvicerName": "baidu translator",
       "saveFilePath": "暂时未实现保存功能，此字段无效"
     }
+  },
+  "baiduapi": {
+    "translatorSetting": {
+      "APPID": "",
+      "KEY": "",
+      "tts": false
+    },
+    "cacheSetting": {
+      "serviceProvicerName": "baidu api translator",
+      "saveFilePath": "暂时未实现保存功能，此字段无效"
+    }
   }
 }

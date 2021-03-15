@@ -7,6 +7,7 @@ import qs from "qs";
 import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 import { TranslateEngine } from "../abstract/translateEngine";
 import { BaiduTranslatorConfig, BaiduPayload } from "../type/type";
+import { generateDestPayload } from "../utils/generateDestPayload";
 
 export class BaiduTranslatorCrawler extends TranslateEngine {
   configReady = false;
@@ -115,11 +116,23 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
       { headers: header }
     );
     try {
-      return req.data["trans_result"]["data"][0]["dst"] as string;
+      return generateDestPayload(
+        true,
+        src,
+        req.data["trans_result"]["data"][0]["dst"] as string,
+        srcLang,
+        destLang
+      );
     } catch (error) {
-      console.log(error);
+      return generateDestPayload(
+        false,
+        src,
+        "翻译服务错误",
+        srcLang,
+        destLang
+      );
     }
-    throw new Error("Translate Error");
+    throw new Error("Translator Unknown Error");
   }
 
   /**
