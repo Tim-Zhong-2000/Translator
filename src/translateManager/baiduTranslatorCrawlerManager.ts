@@ -24,7 +24,9 @@ export class BaiduTranslateManager extends TranslateManager {
     } catch (error) {
       try {
         result = await this.translateEngine.translate(src, srcLang, destLang);
-        this.writeCache(src, srcLang, destLang, result);
+        if (result.success) {
+          this.writeCache(src, srcLang, destLang, result);
+        }
       } catch (error) {
         result = generateDestPayload(false, src, "未知错误", srcLang, destLang);
       }

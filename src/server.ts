@@ -8,6 +8,7 @@ import { BaiduTranslatorCrawler } from "./translateEngines/baiduTranslatorCrawle
 import { BaiduTranslateManager } from "./translateManager/baiduTranslatorCrawlerManager";
 import { BaiduTranslatorAPI } from "./translateEngines/baiduTranslatorApi";
 import { BaiduTranslatorApiManager } from "./translateManager/baiduTranslatorApiManager";
+import { baiduApiLangList, baiduLangList } from "./langlist";
 
 // 加载所有配置
 const CONFIG = JSON.parse(
@@ -53,19 +54,40 @@ app.get("/", (req, res) => {
   res.send("123");
 });
 
+/// 百度
 app.get("/baidu/:srcLang/:destLang/:src", async (req, res) => {
   let src, srcLang, destLang;
   ({ src: src, srcLang: srcLang, destLang: destLang } = req.params);
   const dest = await baiduCrawlerManager.translate(src, srcLang, destLang);
-  res.send(dest);
+  res.send(JSON.stringify(dest));
+  res.end();
+});
+app.get("/baidu/langlist", (req, res) => {
+  res.send(JSON.stringify(baiduLangList));
   res.end();
 });
 
+/// 百度API
 app.get("/baiduapi/:srcLang/:destLang/:src", async (req, res) => {
   let src, srcLang, destLang;
   ({ src: src, srcLang: srcLang, destLang: destLang } = req.params);
   const dest = await baiduAPIManager.translate(src, srcLang, destLang);
-  res.send(dest);
+  res.send(JSON.stringify(dest));
+  res.end();
+});
+app.get("/baiduapi/langlist", (req, res) => {
+  res.send(JSON.stringify(baiduApiLangList));
+  res.end();
+});
+
+/// 返回服务类型
+app.get("/info/entrys", (req, res) => {
+  res.send(
+    JSON.stringify([
+      { name: "baidu", value: "baidu" },
+      { name: "api", value: "baiduapi" },
+    ])
+  );
   res.end();
 });
 

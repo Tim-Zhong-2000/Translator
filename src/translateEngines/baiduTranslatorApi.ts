@@ -29,6 +29,9 @@ export class BaiduTranslatorAPI extends TranslateEngine {
     srcLang: string = "jp",
     destLang: string = "zh"
   ) {
+    if (srcLang === destLang) {
+      return generateDestPayload(true, src, src, srcLang, destLang);
+    }
     const res = await axios.get(
       `https://fanyi-api.baidu.com/api/trans/vip/translate` +
         `?q=${src}&from=${srcLang}&to=${destLang}&appid=${this.APPID}&salt=${

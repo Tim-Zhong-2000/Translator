@@ -106,11 +106,14 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     srcLang: string = "jp",
     destLang: string = "zh"
   ) {
+    if (srcLang === destLang) {
+      return generateDestPayload(true, src, src, srcLang, destLang);
+    }
     if (!this.configReady)
       throw new Error("Please WAIT: auto config is not finished");
     const header = this.getHeader();
     const body = this.getBody(src, srcLang, destLang);
-    const req = await axios.post(
+    const res = await axios.post(
       `https://fanyi.baidu.com/v2transapi?from=${srcLang}&to=${destLang}`,
       body,
       { headers: header }
@@ -119,7 +122,7 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
       return generateDestPayload(
         true,
         src,
-        req.data["trans_result"]["data"][0]["dst"] as string,
+        res.data["trans_result"]["data"][0]["dst"] as string,
         srcLang,
         destLang
       );
@@ -127,12 +130,11 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
       return generateDestPayload(
         false,
         src,
-        "翻译服务错误",
+        `${res.data.errmsg}: ${res.data.errno}`,
         srcLang,
         destLang
       );
     }
-    throw new Error("Translator Unknown Error");
   }
 
   /**
