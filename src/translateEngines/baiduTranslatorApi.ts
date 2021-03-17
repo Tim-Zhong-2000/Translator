@@ -19,6 +19,7 @@ export class BaiduTranslatorAPI extends TranslateEngine {
     super();
     if (!!config) {
       this.setConfig(config);
+      console.log(`api configurattion apply: ${config.APPID}`);
     } else {
       throw new Error("config should not be empty");
     }

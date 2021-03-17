@@ -66,6 +66,11 @@ app.get("/baidu/langlist", (req, res) => {
   res.send(JSON.stringify(baiduLangList));
   res.end();
 });
+app.get("/baidu/reload",async (req,res)=>{
+  await baiduTranslatorCrawler.autoConfig();
+  res.send("Finished");
+  res.end();
+})
 
 /// 百度API
 app.get("/baiduapi/:srcLang/:destLang/:src", async (req, res) => {
