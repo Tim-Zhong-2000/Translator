@@ -5,7 +5,7 @@
 2. run `npm install` / 运行`npm install`
 3. if you use linux edit the `config.json` and copy it to `/etc/translator/config.json` / 如果你使用的是linux环境，编辑`config.json`并且复制到`/etc/translator/config.json`
 4. run `npm start` / 运行`npm start`
-5. you can access the default service through `http://localhost:3000/translate/baidu/:srcLang/:destLang/:src` / 你可以访问`http://localhost:3000/translate/baidu/:srcLang/:destLang/:src`获取翻译。
+5. you can access the default service through `http://localhost:3000/:service/:srcLang/:destLang/:src`(Using an interactive front end, you don't need to memorize these parameters) / 你可以访问`http://localhost:3000/:service/:srcLang/:destLang/:src`获取翻译。（使用交互式前端，不需要记忆这些参数）
 
 ## Docker(推荐)
 推荐使用docker运行该项目。**本项目已经连接到Docker hub，镜像名为`timzhong/translator`**
