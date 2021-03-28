@@ -9,6 +9,7 @@ import { BaiduTranslateManager } from "./translateManager/baiduTranslatorCrawler
 import { BaiduTranslatorAPI } from "./translateEngines/baiduTranslatorApi";
 import { BaiduTranslatorApiManager } from "./translateManager/baiduTranslatorApiManager";
 import { baiduApiLangList, baiduLangList } from "./langlist";
+import { DefaultFilter } from "./filter/filter";
 
 // 加载所有配置
 const CONFIG = JSON.parse(
@@ -20,20 +21,24 @@ const CONFIG = JSON.parse(
 
 // 初始化百度翻译
 const baiduTranslatorCrawler = new BaiduTranslatorCrawler();
-const baiduTranslatorCrawlerCache = new MapCache(CONFIG.baidu.cacheSetting);
+const baiduTranslatorCrawlerCache = new MapCache(CONFIG["baidu"].cacheSetting);
+const baiduTranslatorFilter = new DefaultFilter(CONFIG["baidu"].filterSetting);
 const baiduCrawlerManager = new BaiduTranslateManager(
   baiduTranslatorCrawler,
-  baiduTranslatorCrawlerCache
+  baiduTranslatorCrawlerCache,
+  baiduTranslatorFilter
 );
 
 // 初始化百度翻译API
 const baiduTranslatorAPI = new BaiduTranslatorAPI(
   CONFIG["baiduapi"].translatorSetting
 );
-const baiduTranslatorAPICache = new MapCache(CONFIG.baidu.cacheSetting);
+const baiduTranslatorAPICache = new MapCache(CONFIG["baiduapi"].cacheSetting);
+const baiduTranslatorAPIFilter = new DefaultFilter(CONFIG["baiduapi"].filterSetting);
 const baiduAPIManager = new BaiduTranslatorApiManager(
   baiduTranslatorAPI,
-  baiduTranslatorAPICache
+  baiduTranslatorAPICache,
+  baiduTranslatorAPIFilter
 );
 
 // 初始化其他翻译

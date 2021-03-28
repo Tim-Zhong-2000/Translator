@@ -10,7 +10,7 @@ export class MapCache extends CacheEngine<Map<string, DestPayload>> {
   constructor(config: MapCacheConfig) {
     super();
     this.db = new Map<string, DestPayload>();  
-    this.serivceProviderName = config.serviceProvicerName || "unknown";
+    this.serivceProviderName = config.serviceProviderName || "unknown";
   }
 
   fetch(src: string, srcLang: string, destLang: string): DestPayload {

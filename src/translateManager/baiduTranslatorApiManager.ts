@@ -3,13 +3,18 @@
  */
 import { TranslateManager } from "../abstract/translateManager";
 import { MapCache } from "../cacheEngines/mapCache";
+import { DefaultFilter } from "../filter/filter";
 import { BaiduTranslatorAPI } from "../translateEngines/baiduTranslatorApi";
 import { DestPayload } from "../type/type";
 import { generateDestPayload } from "../utils/generateDestPayload";
 
 export class BaiduTranslatorApiManager extends TranslateManager {
-  constructor(translateEngine: BaiduTranslatorAPI, cacheEngine: MapCache) {
-    super(translateEngine, cacheEngine);
+  constructor(
+    translateEngine: BaiduTranslatorAPI,
+    cacheEngine: MapCache,
+    filter: DefaultFilter
+  ) {
+    super(translateEngine, cacheEngine, filter);
   }
 
   async translate(
@@ -18,6 +23,32 @@ export class BaiduTranslatorApiManager extends TranslateManager {
     destLang: string
   ): Promise<DestPayload> {
     let result: DestPayload = null;
+
+    const filterResult = this.filter.exec(src, srcLang);
+    switch (filterResult.type) {
+      case "pass":
+        src = filterResult.text;
+        break;
+      case "proxy":
+        result = generateDestPayload(
+          true,
+          src,
+          filterResult.text,
+          srcLang,
+          destLang
+        );
+        return result;
+      case "block":
+        result = generateDestPayload(
+          true,
+          "",
+          filterResult.text,
+          srcLang,
+          destLang
+        );
+        return result;
+    }
+
     try {
       result = this.readCache(src, srcLang, destLang);
     } catch (error) {
@@ -25,7 +56,7 @@ export class BaiduTranslatorApiManager extends TranslateManager {
         result = await this.translateEngine.translate(src, srcLang, destLang);
         if (result.success) this.writeCache(src, srcLang, destLang, result);
       } catch (error) {
-        result = generateDestPayload(false, src, "未知错误", srcLang, destLang);
+        result = generateDestPayload(false, src, "服务器未知错误", srcLang, destLang);
       }
     }
     return result;
