@@ -107,7 +107,7 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     destLang: string = "zh"
   ) {
     if (srcLang === destLang) {
-      return generateDestPayload(true, src, src, srcLang, destLang);
+      return generateDestPayload(true, "verified", src, src, srcLang, destLang);
     }
     if (!this.configReady)
       throw new Error("Please WAIT: auto config is not finished");
@@ -121,6 +121,7 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     try {
       return generateDestPayload(
         true,
+        "ai",
         src,
         res.data["trans_result"]["data"][0]["dst"] as string,
         srcLang,
@@ -129,6 +130,7 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     } catch (error) {
       return generateDestPayload(
         false,
+        "ai",
         src,
         `${res.data.errmsg}: ${res.data.errno}`,
         srcLang,

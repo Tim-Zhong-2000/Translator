@@ -31,11 +31,17 @@ export interface CacheIdentity {
 
 export interface MapCacheConfig {
   serviceProviderName: string; // 翻译服务提供商名称
-  saveFilePath?: string; // 持久化
+  filePath?: string; // 持久化
+}
+
+export interface SqliteCacheConfig {
+  serviceProviderName: string;
+  filePath?: string;
 }
 
 export interface DestPayload {
   success: boolean;
+  level: "ai" | "user" | "verified";
   src: string;
   dest: string;
   srcLang: string;
@@ -53,7 +59,7 @@ export interface FilterConfig {
   removeSpaceLangs: string[]; // 需要移除空格的语言
 }
 
-export interface FilterResult{
+export interface FilterResult {
   type: "proxy" | "pass" | "block"; // 遇到日志原封不动转发，遇到违禁词block
   text: string;
 }

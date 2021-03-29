@@ -32,6 +32,7 @@ export class BaiduTranslatorApiManager extends TranslateManager {
       case "proxy":
         result = generateDestPayload(
           true,
+          "verified",
           src,
           filterResult.text,
           srcLang,
@@ -41,6 +42,7 @@ export class BaiduTranslatorApiManager extends TranslateManager {
       case "block":
         result = generateDestPayload(
           true,
+          "ai",
           "",
           filterResult.text,
           srcLang,
@@ -56,7 +58,14 @@ export class BaiduTranslatorApiManager extends TranslateManager {
         result = await this.translateEngine.translate(src, srcLang, destLang);
         if (result.success) this.writeCache(src, srcLang, destLang, result);
       } catch (error) {
-        result = generateDestPayload(false, src, "服务器未知错误", srcLang, destLang);
+        result = generateDestPayload(
+          false,
+          "ai",
+          src,
+          "服务器未知错误",
+          srcLang,
+          destLang
+        );
       }
     }
     return result;

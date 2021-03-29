@@ -31,7 +31,7 @@ export class BaiduTranslatorAPI extends TranslateEngine {
     destLang: string = "zh"
   ) {
     if (srcLang === destLang) {
-      return generateDestPayload(true, src, src, srcLang, destLang);
+      return generateDestPayload(true, "verified", src, src, srcLang, destLang);
     }
     const res = await axios.get(
       `https://fanyi-api.baidu.com/api/trans/vip/translate` +
@@ -43,6 +43,7 @@ export class BaiduTranslatorAPI extends TranslateEngine {
       try {
         let destPayload = generateDestPayload(
           true,
+          "ai",
           src,
           res.data.trans_result[0].dst as string,
           srcLang,
@@ -58,6 +59,7 @@ export class BaiduTranslatorAPI extends TranslateEngine {
       } catch (error) {
         return generateDestPayload(
           false,
+          "ai",
           src,
           `错误码：${res.data.error_code}`,
           srcLang,
