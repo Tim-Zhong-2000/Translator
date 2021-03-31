@@ -34,7 +34,9 @@ const baiduTranslatorAPI = new BaiduTranslatorAPI(
   CONFIG["baiduapi"].translatorSetting
 );
 const baiduTranslatorAPICache = new MapCache(CONFIG["baiduapi"].cacheSetting);
-const baiduTranslatorAPIFilter = new DefaultFilter(CONFIG["baiduapi"].filterSetting);
+const baiduTranslatorAPIFilter = new DefaultFilter(
+  CONFIG["baiduapi"].filterSetting
+);
 const baiduAPIManager = new BaiduTranslatorApiManager(
   baiduTranslatorAPI,
   baiduTranslatorAPICache,
@@ -92,12 +94,14 @@ app.get("/baiduapi/langlist", (req, res) => {
 
 /// 返回服务类型
 app.get("/info/entrys", (req, res) => {
-  res.send(
-    JSON.stringify([
-      { name: "baidu", value: "baidu" },
-      { name: "api", value: "baiduapi" },
-    ])
-  );
+  const list = [];
+  if (CONFIG["baidu"].enabeld) {
+    list.push({ name: "baidu", value: "baidu" });
+  }
+  if (CONFIG["baiduapi"].enabled) {
+    list.push({ name: "api", value: "baiduapi" });
+  }
+  res.send(JSON.stringify(list));
   res.end();
 });
 

@@ -1,5 +1,6 @@
 {
   "baidu": {
+    "enabled": true,
     "translatorSetting": {
       "gtk": "",
       "cookie": "",
@@ -19,6 +20,7 @@
     }
   },
   "baiduapi": {
+    "enabled": true,
     "translatorSetting": {
       "APPID": "",
       "KEY": "",
