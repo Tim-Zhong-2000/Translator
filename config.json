@@ -20,7 +20,7 @@
     }
   },
   "baiduapi": {
-    "enabled": true,
+    "enabled": false,
     "translatorSetting": {
       "APPID": "",
       "KEY": "",
@@ -28,6 +28,23 @@
     },
     "cacheSetting": {
       "serviceProviderName": "baidu api translator",
+      "saveFilePath": "暂时未实现保存功能，此字段无效"
+    },
+    "filterSetting": {
+      "banPrefixs": ["Textractor:", "vnreng:", "抓取服务器"],
+      "banWords": [],
+      "apis": ["不可用"],
+      "regs": ["不可用"],
+      "removeSpaceLangs": ["jp", "zh"]
+    }
+  },
+  "google": {
+    "enabled": true,
+    "translatorSetting": {
+      "UA": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"
+    },
+    "cacheSetting": {
+      "serviceProviderName": "google translator",
       "saveFilePath": "暂时未实现保存功能，此字段无效"
     },
     "filterSetting": {

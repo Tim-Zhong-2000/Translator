@@ -1,31 +1,30 @@
 /**
- * @description 谷歌翻译模块，采用`node-google-translate-skidz`包完成接口调用
+ * @description 谷歌翻译模块
  * @author Tim-Zhong-2000
  */
-
+import axios from "axios";
 import { TranslateEngine } from "../abstract/translateEngine";
 import { Payload } from "../type/type";
 import { generatePayload } from "../utils/generatePayload";
-const translate = require("node-google-translate-skidz"); // not support ts
 
 export class GoogleTranslatorCrawler extends TranslateEngine {
+  UA = "";
+
+  constructor(config: any) {
+    super();
+    if (!!config) {
+      this.setConfig(config);
+    } else {
+      throw new Error("config should not be empty");
+    }
+  }
+
   async translate(
     src: string,
     srcLang: string = "en",
     destLang: string = "zh"
   ): Promise<Payload> {
-    const req: Promise<string> = new Promise((resolve, reject) => {
-      translate(
-        { text: src, source: srcLang, target: destLang },
-        (result: string) => {
-          resolve(result);
-        }
-      );
-      setTimeout(() => {
-        reject();
-      }, 2000);
-    });
-    const dest = await req;
+    const dest = await this.googleTranslate(src, srcLang, destLang);
     if (!dest) {
       return generatePayload(
         false,
@@ -40,7 +39,90 @@ export class GoogleTranslatorCrawler extends TranslateEngine {
     }
   }
 
+  googleTranslate(
+    src: string,
+    srcLang: string,
+    destLang: string
+  ): Promise<any> {
+    src = encodeURI(src).trim();
+    const api = "https://translate.google.cn/translate_a/single";
+    const url = `${api}?client=t&sl=${srcLang}&tl=${destLang}&dt=rm&dt=t&tk=${this.googleToken(
+      src
+    )}&q=${src}`;
+
+    return new Promise((resolve, reject) => {
+      axios
+        .get(url, {
+          headers: this.getHeader(),
+        })
+        .then((res) => {
+          if (!!res.data) {
+            resolve(res.data[0][0][0]);
+          }
+        })
+        .catch((e) => {
+          reject();
+        });
+    });
+  }
+
+  // Forked from https://github.com/cocoa520/Google_TK
+  googleToken(r: any) {
+    for (var a = 406644, e = [], h = 0, n = 0; n < r.length; n++) {
+      var o = r.charCodeAt(n);
+      128 > o
+        ? (e[h++] = o)
+        : (2048 > o
+            ? (e[h++] = (o >> 6) | 192)
+            : (55296 == (64512 & o) &&
+              n + 1 < r.length &&
+              56320 == (64512 & r.charCodeAt(n + 1))
+                ? ((o =
+                    65536 + ((1023 & o) << 10) + (1023 & r.charCodeAt(++n))),
+                  (e[h++] = (o >> 18) | 240),
+                  (e[h++] = ((o >> 12) & 63) | 128))
+                : (e[h++] = (o >> 12) | 224),
+              (e[h++] = ((o >> 6) & 63) | 128)),
+          (e[h++] = (63 & o) | 128));
+    }
+    function t(r: any, t: any) {
+      for (var a = 0; a < t.length - 2; a += 3) {
+        var e;
+        if ((e = t.charAt(a + 2)) >= "a") {
+          e = e.charCodeAt(0) - 87;
+        } else {
+          e = Number(e);
+        }
+        e = "+" == t.charAt(a + 1) ? r >>> e : r << e;
+        r = "+" == t.charAt(a) ? (r + e) & 4294967295 : r ^ e;
+      }
+      return r;
+    }
+    for (r = a, h = 0; h < e.length; h++) (r += e[h]), (r = t(r, "+-a^+6"));
+    return (
+      (r = t(r, "+-3^+b+-f")),
+      0 > (r ^= 3293161072) && (r = 2147483648 + (2147483647 & r)),
+      (r %= 1e6).toString() + "." + (r ^ a)
+    );
+  }
+
+  /**
+   * 构建header
+   * @returns 构建的header
+   */
+  private getHeader() {
+    return {
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+      "User-Agent": this.UA,
+      Host: "translate.google.cn",
+      Origin: "https://translate.google.cn",
+      Referer: "https://translate.google.cn/",
+      "sec-ch-ua":
+        "'Chromium';v='88', 'Google Chrome';v='88', ';Not A Brand';v='99'",
+    };
+  }
+
   setConfig(config: any): void {
-    throw new Error("Method not implemented.");
+    this.UA = config.UA;
   }
 }
