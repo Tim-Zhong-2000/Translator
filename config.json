@@ -9,7 +9,7 @@
     },
     "cacheSetting": {
       "serviceProviderName": "baidu translator",
-      "saveFilePath": "暂时未实现保存功能，此字段无效"
+      "db": {}
     },
     "filterSetting": {
       "banPrefixs": ["Textractor:", "vnreng:", "抓取服务器"],
@@ -28,7 +28,7 @@
     },
     "cacheSetting": {
       "serviceProviderName": "baidu api translator",
-      "saveFilePath": "暂时未实现保存功能，此字段无效"
+      "db": {}
     },
     "filterSetting": {
       "banPrefixs": ["Textractor:", "vnreng:", "抓取服务器"],
@@ -45,7 +45,7 @@
     },
     "cacheSetting": {
       "serviceProviderName": "google translator",
-      "saveFilePath": "暂时未实现保存功能，此字段无效"
+      "db": {}
     },
     "filterSetting": {
       "banPrefixs": ["Textractor:", "vnreng:", "抓取服务器"],
