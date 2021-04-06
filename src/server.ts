@@ -123,17 +123,17 @@ if (CONFIG["baiduapi"].enabled) {
 if (CONFIG["google"].enabled) {
   entryList.push({ name: "google", value: "google" });
 
-  const googleTranslatorAPI = new GoogleTranslatorCrawler(
+  const googleTranslatorCrawler = new GoogleTranslatorCrawler(
     CONFIG["google"].translatorSetting
   );
-  const googleTranslatorAPICache = new MapCache(CONFIG["google"].cacheSetting);
-  const googleTranslatorAPIFilter = new DefaultFilter(
+  const googleTranslatorCrawlerCache = new MapCache(CONFIG["google"].cacheSetting);
+  const googleTranslatorCrawlerFilter = new DefaultFilter(
     CONFIG["google"].filterSetting
   );
   const googleTranslateManager = new DefaultTranslatorManager(
-    googleTranslatorAPI,
-    googleTranslatorAPICache,
-    googleTranslatorAPIFilter
+    googleTranslatorCrawler,
+    googleTranslatorCrawlerCache,
+    googleTranslatorCrawlerFilter
   );
   /// google
   app.get("/google/:srcLang/:destLang/:src", async (req, res) => {
