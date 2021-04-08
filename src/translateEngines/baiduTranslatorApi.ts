@@ -6,7 +6,7 @@
 import axios from "axios";
 import md5 from "md5";
 import { TranslateEngine } from "../abstract/translateEngine";
-import { Payload, BaiduTranslatorAPIConfig } from "../type/type";
+import { Payload, BaiduTranslatorAPIConfig, TranslateLevel } from "../type/type";
 import { generatePayload } from "../utils/generatePayload";
 
 export class BaiduTranslatorAPI extends TranslateEngine {
@@ -29,18 +29,25 @@ export class BaiduTranslatorAPI extends TranslateEngine {
     }
   }
 
+  /**
+   * 请求翻译接口
+   * @param src 源文本
+   * @param srcLang 源语言
+   * @param destLang 目标语言
+   * @returns `Promise<Payload>` 翻译结果
+   */
   async translate(
     src: string,
     srcLang: string = "jp",
     destLang: string = "zh"
   ) {
     if (srcLang === destLang) {
-      return generatePayload(true, "verified", src, src, srcLang, destLang);
+      return generatePayload(true, TranslateLevel.VERIFIED, src, src, srcLang, destLang);
     }
     if (this.isConfigEmpty) {
       return generatePayload(
         false,
-        "verified",
+        TranslateLevel.VERIFIED,
         src,
         "此翻译服务器未设置API账户",
         srcLang,
@@ -57,7 +64,7 @@ export class BaiduTranslatorAPI extends TranslateEngine {
       try {
         let Payload = generatePayload(
           true,
-          "ai",
+          TranslateLevel.AI,
           src,
           res.data.trans_result[0].dst as string,
           srcLang,
@@ -65,15 +72,15 @@ export class BaiduTranslatorAPI extends TranslateEngine {
         );
         if (this.ttsEnabled) {
           Payload = Object.assign(Payload, {
-            srcTTS: res.data["src_tts"],
-            destTTS: res.data["dst_tts"],
+            ttsSrc: res.data["src_tts"],
+            ttsDest: res.data["dst_tts"],
           } as Payload);
         }
         return Payload;
       } catch (error) {
         return generatePayload(
           false,
-          "ai",
+          TranslateLevel.AI,
           src,
           `错误码：${res.data.error_code}`,
           srcLang,

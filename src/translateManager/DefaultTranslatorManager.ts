@@ -1,83 +1,99 @@
 /**
  * @description 管理模块
+ * @author Tim-Zhong-2000
  */
+
+import { CacheEngine } from "../abstract/cacheEngine";
 import { TranslateEngine } from "../abstract/translateEngine";
 import { TranslateManager } from "../abstract/translateManager";
 import { MapCache } from "../cacheEngines/mapCache";
 import { DefaultFilter } from "../filter/filter";
-import { Payload } from "../type/type";
+import { FilterType, Payload, TranslateLevel } from "../type/type";
 import { generatePayload } from "../utils/generatePayload";
 
-export class DefaultTranslatorManager extends TranslateManager {
+export class DefaultTranslatorManager<
+  CacheType
+> extends TranslateManager<CacheType> {
   constructor(
     translateEngine: TranslateEngine,
-    cacheEngine: MapCache,
+    cacheEngine: CacheEngine<CacheType>,
     filter: DefaultFilter
   ) {
     super(translateEngine, cacheEngine, filter);
   }
 
+  /**
+   * 翻译函数，进行过滤与缓存
+   * @param src 源文本
+   * @param srcLang 源语言
+   * @param destLang 目标语言
+   * @returns `Promise<Payload>` 翻译结果
+   */
   async translate(
     src: string,
     srcLang: string,
     destLang: string
   ): Promise<Payload> {
-    let dest: Payload = null;
+    let payload: Payload = null;
 
     const filterResult = this.filter.exec(src, srcLang);
     switch (filterResult.type) {
-      case "pass":
+      case FilterType.PASS:
         src = filterResult.text;
         break;
-      case "proxy":
-        dest = generatePayload(
+      case FilterType.PROXY:
+        payload = generatePayload(
           true,
-          "verified",
+          TranslateLevel.VERIFIED,
           src,
           filterResult.text,
           srcLang,
           destLang
         );
-        return dest;
-      case "block":
-        dest = generatePayload(
+        return payload;
+      case FilterType.BLOCK:
+        payload = generatePayload(
           true,
-          "ai",
+          TranslateLevel.AI,
           "",
           filterResult.text,
           srcLang,
           destLang
         );
-        return dest;
+        return payload;
     }
 
-    try {
-      dest = this.readCache(src, srcLang, destLang);
-    } catch (error) {
-      try {
-        dest = await this.translateEngine.translate(src, srcLang, destLang);
-        if (dest.success) this.writeCache(dest);
-      } catch (error) {
-        dest = generatePayload(
-          false,
-          "ai",
-          src,
-          "服务器未知错误",
-          srcLang,
-          destLang
-        );
-      }
+    console.time("readCache");
+    payload = await this.readCache(src, srcLang, destLang);
+    console.timeEnd("readCache");
+
+    if (!payload) {
+      console.time("translate");
+      payload = await this.translateEngine
+        .translate(src, srcLang, destLang)
+        .catch((err) => {
+          return generatePayload(
+            false,
+            TranslateLevel.AI,
+            src,
+            "服务器未知错误",
+            srcLang,
+            destLang
+          );
+        });
+      console.timeEnd("translate");
+      if (payload.success) this.writeCache(payload);
     }
-    return dest;
+    return payload;
   }
 
-  writeCache(
-    dest: Payload
-  ): void {
+  writeCache(dest: Payload): void {
     this.cacheEngine.insert(dest);
   }
 
-  readCache(src: string, srcLang: string, destLang: string): Payload {
-    return this.cacheEngine.fetch(src, srcLang, destLang);
+  async readCache(src: string, srcLang: string, destLang: string): Promise<Payload> {
+    return this.cacheEngine
+      .fetch(src, srcLang, destLang)
+      .catch((err) => undefined); // hide miss error
   }
 }

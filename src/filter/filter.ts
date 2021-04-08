@@ -1,4 +1,9 @@
-import { FilterConfig, FilterResult } from "../type/type";
+/**
+ * @description 文本过滤器，配置文件见config.json
+ * @author Tim-Zhong-2000
+ */
+
+import { FilterConfig, FilterResult, FilterType } from "../type/type";
 
 export class DefaultFilter {
   config: FilterConfig;
@@ -7,6 +12,12 @@ export class DefaultFilter {
     this.config = config;
   }
 
+  /**
+   * 文本过滤
+   * @param text 过滤文本
+   * @param lang 过滤语言
+   * @returns 
+   */
   exec(text: string, lang: string): FilterResult {
     text = decodeURI(text);
     let pass = true;
@@ -23,7 +34,7 @@ export class DefaultFilter {
     });
     if (!pass) {
       return {
-        type: "proxy",
+        type: FilterType.PROXY,
         text: "",
       } as FilterResult;
     }
@@ -36,7 +47,7 @@ export class DefaultFilter {
     });
     if (!pass) {
       return {
-        type: "block",
+        type: FilterType.BLOCK,
         text: "词汇违规",
       } as FilterResult;
     }
@@ -45,7 +56,7 @@ export class DefaultFilter {
     // 4. api filter (disbale
 
     return {
-      type: "pass",
+      type: FilterType.PASS,
       text: text,
     } as FilterResult;
   }

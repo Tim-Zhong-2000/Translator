@@ -11,6 +11,8 @@ export abstract class TranslateEngine {
     srcLang: string,
     destLang: string
   ): Promise<Payload>;
+
   abstract translate(src: string): Promise<Payload>;
+  
   abstract setConfig(config: any): void;
 }

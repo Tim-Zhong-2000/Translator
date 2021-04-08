@@ -1,8 +1,8 @@
-import { Payload } from "../type/type";
+import { Payload, TranslateLevel } from "../type/type";
 
 export function generatePayload(
   success: boolean,
-  level: "ai" | "user" | "verified",
+  level: TranslateLevel,
   src: string,
   dest: string,
   srcLang: string,

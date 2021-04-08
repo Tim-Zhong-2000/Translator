@@ -7,14 +7,14 @@ import { Payload } from "../type/type";
 import { CacheEngine } from "./cacheEngine";
 import { TranslateEngine } from "./translateEngine";
 
-export abstract class TranslateManager {
+export abstract class TranslateManager<CacheType> {
   translateEngine: TranslateEngine = null;
-  cacheEngine: CacheEngine = null;
+  cacheEngine: CacheEngine<CacheType> = null;
   filter: DefaultFilter = null;
 
   constructor(
     translateEngine: TranslateEngine,
-    cacheEngine: CacheEngine,
+    cacheEngine: CacheEngine<CacheType>,
     filter: DefaultFilter
   ) {
     if (!!translateEngine && !!cacheEngine) {

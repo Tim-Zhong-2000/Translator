@@ -39,6 +39,7 @@ export interface Database {
 
 export interface CacheBase {
   serviceProviderName: string; // 翻译服务提供商名称
+  exportable: boolean;
   db?: Database;
 }
 
@@ -48,14 +49,14 @@ export interface SqliteCacheConfig extends CacheBase {}
 
 export interface Payload {
   success: boolean;
-  level: "ai" | "user" | "verified";
+  level: TranslateLevel;
   src: string;
   dest: string;
   srcLang: string;
   destLang: string;
   tts?: boolean;
-  srcTTS?: string;
-  destTTS?: string;
+  ttsSrc?: string;
+  ttsDest?: string;
 }
 
 export interface FilterConfig {
@@ -67,6 +68,18 @@ export interface FilterConfig {
 }
 
 export interface FilterResult {
-  type: "proxy" | "pass" | "block"; // 遇到日志原封不动转发，遇到违禁词block
+  type: FilterType; // 遇到日志原封不动转发，遇到违禁词block
   text: string;
+}
+
+export enum FilterType{
+  "PROXY",
+  "PASS",
+  "BLOCK"
+}
+
+export enum TranslateLevel {
+  "AI",
+  "USER",
+  "VERIFIED",
 }

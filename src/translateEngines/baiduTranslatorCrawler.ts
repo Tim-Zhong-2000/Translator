@@ -2,11 +2,11 @@
  * @description 适配百度翻译web翻译接口
  * @author Tim-Zhong-2000
  */
+
 import axios from "axios";
 import qs from "qs";
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 import { TranslateEngine } from "../abstract/translateEngine";
-import { BaiduTranslatorConfig, BaiduPayload } from "../type/type";
+import { BaiduTranslatorConfig, BaiduPayload, TranslateLevel } from "../type/type";
 import { generatePayload } from "../utils/generatePayload";
 
 export class BaiduTranslatorCrawler extends TranslateEngine {
@@ -95,11 +95,11 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
   }
 
   /**
-   * 异步翻译函数
-   * @param src 待翻译文本
+   * 请求翻译接口
+   * @param src 源文本
    * @param srcLang 源语言
    * @param destLang 目标语言
-   * @returns Promise<string> 翻译结果
+   * @returns `Promise<Payload>` 翻译结果
    */
   async translate(
     src: string,
@@ -107,7 +107,7 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     destLang: string = "zh"
   ) {
     if (srcLang === destLang) {
-      return generatePayload(true, "verified", src, src, srcLang, destLang);
+      return generatePayload(true, TranslateLevel.VERIFIED, src, src, srcLang, destLang);
     }
     if (!this.configReady)
       throw new Error("Please WAIT: auto config is not finished");
@@ -121,7 +121,7 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     try {
       return generatePayload(
         true,
-        "ai",
+        TranslateLevel.AI,
         src,
         res.data["trans_result"]["data"][0]["dst"] as string,
         srcLang,
@@ -130,7 +130,7 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     } catch (error) {
       return generatePayload(
         false,
-        "ai",
+        TranslateLevel.AI,
         src,
         `${res.data.errmsg}: ${res.data.errno}`,
         srcLang,

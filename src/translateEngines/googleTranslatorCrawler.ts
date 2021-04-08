@@ -2,9 +2,10 @@
  * @description 谷歌翻译模块
  * @author Tim-Zhong-2000
  */
+
 import axios from "axios";
 import { TranslateEngine } from "../abstract/translateEngine";
-import { Payload } from "../type/type";
+import { Payload, TranslateLevel } from "../type/type";
 import { generatePayload } from "../utils/generatePayload";
 
 export class GoogleTranslatorCrawler extends TranslateEngine {
@@ -19,6 +20,13 @@ export class GoogleTranslatorCrawler extends TranslateEngine {
     }
   }
 
+  /**
+   * 请求翻译接口
+   * @param src 源文本
+   * @param srcLang 源语言
+   * @param destLang 目标语言
+   * @returns `Promise<Payload>` 翻译结果
+   */
   async translate(
     src: string,
     srcLang: string = "en",
@@ -28,14 +36,14 @@ export class GoogleTranslatorCrawler extends TranslateEngine {
     if (!dest) {
       return generatePayload(
         false,
-        "ai",
+        TranslateLevel.AI,
         src,
         "服务器翻译服务错误",
         srcLang,
         destLang
       );
     } else {
-      return generatePayload(true, "ai", src, dest, srcLang, destLang);
+      return generatePayload(true, TranslateLevel.AI, src, dest, srcLang, destLang);
     }
   }
 

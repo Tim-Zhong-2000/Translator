@@ -6,11 +6,11 @@
 import md5 from "md5";
 import { CacheIdentity, Payload } from "../type/type";
 
-export abstract class CacheEngine<T = Map<string, Payload>> {
+export abstract class CacheEngine<T> {
   db: T = null; // 底层数据结构
   serivceProviderName = "unknown"; // 服务提供商名称
 
-  abstract fetch(src: string, srcLang: string, destLang: string): Payload;
+  abstract fetch(src: string, srcLang: string, destLang: string): Promise<Payload>;
 
   abstract insert(dest: Payload): void;
 
