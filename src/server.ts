@@ -10,6 +10,7 @@ import { DefaultTranslatorManager } from "./translateManager/DefaultTranslatorMa
 import { baiduApiLangList, baiduLangList, googleLanglist } from "./langlist";
 import { DefaultFilter } from "./filter/filter";
 import { GoogleTranslatorCrawler } from "./translateEngines/googleTranslatorCrawler";
+import { SqliteCache } from "./cacheEngines/sqlite3Cache";
 
 // 加载所有配置
 const CONFIG = JSON.parse(
@@ -28,7 +29,7 @@ const app = express();
 
 // 中间件
 app.use(cors());
-app.use(morgan("combined"));
+// app.use(morgan("combined"));
 
 // 路由
 app.get("/", (_req, res) => {
@@ -59,7 +60,7 @@ if (CONFIG["baidu"].enabled) {
   entryList.push({ name: "baidu", value: "baidu" });
 
   const baiduTranslatorCrawler = new BaiduTranslatorCrawler();
-  const baiduTranslatorCrawlerCache = new MapCache(
+  const baiduTranslatorCrawlerCache = new SqliteCache(
     CONFIG["baidu"].cacheSetting
   );
   const baiduTranslatorFilter = new DefaultFilter(

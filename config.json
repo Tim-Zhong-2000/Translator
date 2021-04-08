@@ -10,7 +10,9 @@
     "cacheSetting": {
       "serviceProviderName": "baidu translator",
       "exportable": false,
-      "db": {}
+      "db": {
+        "host": "./baidu.db"
+      }
     },
     "filterSetting": {
       "banPrefixs": ["Textractor:", "vnreng:", "抓取服务器"],
