@@ -26,7 +26,7 @@ export interface CacheIdentity {
   src: string;
   srcLang: string;
   destLang: string;
-  serviceProvider: string;
+  provider: string;
 }
 
 export interface Database {

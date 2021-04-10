@@ -10,7 +10,11 @@ export abstract class CacheEngine<T> {
   db: T = null; // 底层数据结构
   serivceProviderName = "unknown"; // 服务提供商名称
 
-  abstract fetch(src: string, srcLang: string, destLang: string): Promise<Payload>;
+  abstract fetch(
+    src: string,
+    srcLang: string,
+    destLang: string
+  ): Promise<Payload>;
 
   abstract insert(dest: Payload): void;
 
@@ -20,12 +24,17 @@ export abstract class CacheEngine<T> {
     return md5(str);
   }
 
-  generateHashKey(src: string, srcLang: string, destLang: string) {
+  generateHashKey(
+    src: string,
+    srcLang: string,
+    destLang: string,
+    provider: string
+  ) {
     const origin: CacheIdentity = {
       src: src,
       srcLang: srcLang,
       destLang: destLang,
-      serviceProvider: this.serivceProviderName,
+      provider: provider,
     };
     return this.hash(JSON.stringify(origin));
   }

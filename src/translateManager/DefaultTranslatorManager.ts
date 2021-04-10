@@ -91,9 +91,14 @@ export class DefaultTranslatorManager<
     this.cacheEngine.insert(dest);
   }
 
-  async readCache(src: string, srcLang: string, destLang: string): Promise<Payload> {
-    return this.cacheEngine
-      .fetch(src, srcLang, destLang)
-      .catch((err) => undefined); // hide miss error
+  async readCache(
+    src: string,
+    srcLang: string,
+    destLang: string
+  ): Promise<Payload> {
+    return this.cacheEngine.fetch(src, srcLang, destLang).catch((err) => {
+      console.error(err);
+      return undefined;
+    });
   }
 }

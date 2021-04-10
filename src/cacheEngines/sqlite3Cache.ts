@@ -36,7 +36,12 @@ export class SqliteCache extends CacheEngine<sqlite3.Database> {
     srcLang: string,
     destLang: string
   ): Promise<Payload> {
-    const reqHash = this.generateHashKey(src, srcLang, destLang);
+    const reqHash = this.generateHashKey(
+      src,
+      srcLang,
+      destLang,
+      this.serivceProviderName
+    );
     const sqliteProc: Promise<Payload[]> = new Promise((resolve, reject) => {
       const rows: Payload[] = [];
       const stmt = this.db.prepare(
@@ -53,8 +58,9 @@ export class SqliteCache extends CacheEngine<sqlite3.Database> {
         resolve(rows);
       });
     });
+
     const allResult = await sqliteProc;
-    if (allResult) {
+    if (allResult && allResult.length > 0) {
       console.log(`HIT:\t${decodeURI(src)}`);
       return this.optimizeResults(allResult);
     } else {
@@ -75,7 +81,12 @@ export class SqliteCache extends CacheEngine<sqlite3.Database> {
       ttsSrc,
       ttsDest,
     } = payload;
-    const reqHash = this.generateHashKey(src, destLang, destLang);
+    const reqHash = this.generateHashKey(
+      src,
+      srcLang,
+      destLang,
+      this.serivceProviderName
+    );
     const stmt = this.db.prepare(
       "INSERT INTO cache VALUES (?,?,?,?,?,?,?,?,?,?)"
     );

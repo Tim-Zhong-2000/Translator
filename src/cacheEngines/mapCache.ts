@@ -17,22 +17,31 @@ export class MapCache extends CacheEngine<Map<string, Payload>> {
   }
 
   fetch(src: string, srcLang: string, destLang: string): Promise<Payload> {
+    const reqHash = this.generateHashKey(
+      src,
+      srcLang,
+      destLang,
+      this.serivceProviderName
+    );
     return new Promise((resolve, reject) => {
-      const result = this.db.get(this.generateHashKey(src, srcLang, destLang));
+      const result = this.db.get(reqHash);
       if (!result) {
-        console.log(`MISS:\t${decodeURI(src)}\thash:\t${this.generateHashKey(src, srcLang, destLang)}`);
+        console.log(`MISS:\t${decodeURI(src)}\thash:\t${reqHash}`);
         throw new Error("MISS");
       }
-      console.log(`HIT:\t${decodeURI(src)}\thash:\t${this.generateHashKey(src, srcLang, destLang)}`);
+      console.log(`HIT:\t${decodeURI(src)}\thash:\t${reqHash}`);
       resolve(result);
     });
   }
 
   insert(dest: Payload): void {
-    const result = this.db.set(
-      this.generateHashKey(dest.src, dest.srcLang, dest.destLang),
-      dest
+    const reqHash = this.generateHashKey(
+      dest.src,
+      dest.srcLang,
+      dest.destLang,
+      this.serivceProviderName
     );
+    const result = this.db.set(reqHash, dest);
     if (!result) {
       throw new Error("Insert Fail");
     }
