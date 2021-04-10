@@ -51,6 +51,7 @@ export class DefaultTranslatorManager<
         );
         return payload;
       case FilterType.BLOCK:
+        console.log(`BAN:\t${src}`);
         payload = generatePayload(
           true,
           TranslateLevel.AI,

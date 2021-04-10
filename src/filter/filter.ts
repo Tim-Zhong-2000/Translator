@@ -16,7 +16,7 @@ export class DefaultFilter {
    * 文本过滤
    * @param text 过滤文本
    * @param lang 过滤语言
-   * @returns 
+   * @returns
    */
   exec(text: string, lang: string): FilterResult {
     text = decodeURI(text);
@@ -52,7 +52,20 @@ export class DefaultFilter {
       } as FilterResult;
     }
 
-    // 3. reg filter (disable
+    // 3. reg filter
+    this.config.regs.forEach((regStr) => {
+      const reg = RegExp(regStr);
+      if (reg.test(text)) {
+        pass = false;
+      }
+    });
+    if (!pass) {
+      return {
+        type: FilterType.BLOCK,
+        text: "词汇违规",
+      } as FilterResult;
+    }
+
     // 4. api filter (disbale
 
     return {
