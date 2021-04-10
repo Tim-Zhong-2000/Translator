@@ -18,7 +18,7 @@
       "banPrefixs": ["Textractor:", "vnreng:", "抓取服务器"],
       "banWords": [],
       "apis": ["不可用"],
-      "regs": ["不可用"],
+      "regs": ["ban_test"],
       "removeSpaceLangs": ["jp", "zh"]
     }
   },
@@ -40,7 +40,7 @@
       "banPrefixs": ["Textractor:", "vnreng:", "抓取服务器"],
       "banWords": [],
       "apis": ["不可用"],
-      "regs": ["不可用"],
+      "regs": ["ban_test"],
       "removeSpaceLangs": ["jp", "zh"]
     }
   },
@@ -60,7 +60,7 @@
       "banPrefixs": ["Textractor:", "vnreng:", "抓取服务器"],
       "banWords": [],
       "apis": ["不可用"],
-      "regs": ["不可用"],
+      "regs": ["ban_test"],
       "removeSpaceLangs": ["jp", "zh"]
     }
   },
