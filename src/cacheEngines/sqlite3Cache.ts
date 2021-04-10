@@ -114,7 +114,10 @@ export class SqliteCache extends CacheEngine<sqlite3.Database> {
     ];
     for (const type of priority) {
       const findIndex = typeArr.indexOf(type);
-      if (findIndex >= 0) return allResults[findIndex];
+      if (findIndex >= 0) {
+        const successTag = { success: true };
+        return Object.assign(successTag, allResults[findIndex]);
+      }
     }
     throw new Error("optimizer failed");
   }
