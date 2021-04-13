@@ -2,6 +2,7 @@
  * @description 翻译总模块抽象类
  * @author Tim-Zhong-2000
  */
+
 import { DefaultFilter } from "../filter/filter";
 import { Payload } from "../type/type";
 import { CacheEngine } from "./cacheEngine";
