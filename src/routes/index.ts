@@ -8,7 +8,7 @@ import express from "express";
 const router = express.Router();
 
 router.get("/",(_req,res)=>{
-    res.send("123");
+    res.send("welcome to tim translator\nenter /info for more information");
     res.end();
 })
 
