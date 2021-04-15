@@ -4,7 +4,7 @@ import express from "express"
 const router = express.Router();
 
 router.get("/",(_req,res)=>{
-    const png = fs.createReadStream("./servicediscovery.png");
+    const png = fs.createReadStream("../../servicediscovery.png");
     png.pipe(res);
 })
 
