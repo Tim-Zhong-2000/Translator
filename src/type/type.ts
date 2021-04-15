@@ -72,17 +72,43 @@ export interface FilterResult {
 }
 
 export namespace USER {
-  export interface User {
+  export interface LoginPayload {
     username: string;
     password: string;
-    role: Role;
-    RegistTime: Date;
   }
 
+  export interface UserDbItem {
+    uid: number;
+    email: string;
+    phone?: string;
+    password: string;
+    nickname: string;
+    role: Role;
+    create_at: string;
+    isDelete: boolean;
+  }
+
+  export interface RegisterPayload {
+    nickname: string;
+    email: string;
+    phone?: string;
+    password: string;
+  }
+
+  export interface Session {
+    uid: number;
+    nickname: string;
+    email: string;
+    phone?: string;
+    role: Role;
+  }
+
+  /* 数字越大权限越高 */
   export enum Role {
-    "admin",
-    "user",
-    "guest",
+    "guest",      // + 下载权限
+    "user",       // + 发布权限
+    "translator", // + 验证权限
+    "admin",      // + 最高权限
   }
 }
 
