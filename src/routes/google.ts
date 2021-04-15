@@ -32,16 +32,14 @@ if (CONFIG["google"].enabled) {
   );
 
   router.get("/langlist", (_req, res) => {
-    res.send(JSON.stringify(googleLanglist));
-    res.end();
+    res.json(googleLanglist);
   });
 
   router.get("/:srcLang/:destLang/:src", async (req, res) => {
     let src, srcLang, destLang;
     ({ src: src, srcLang: srcLang, destLang: destLang } = req.params);
     const dest = await googleTranslateManager.translate(src, srcLang, destLang);
-    res.send(JSON.stringify(dest));
-    res.end();
+    res.json(dest);
   });
 }
 

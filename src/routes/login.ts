@@ -5,21 +5,23 @@
 
 import express, { Request, Response } from "express";
 import { USER } from "../type/type";
+import { errBody } from "../utils/errorPayload";
 
 const router = express.Router();
 
 router.get("/", (req, res) => {
-  // @debug warning remove this
-  if (req.session.user) res.send(req.session.user);
-  else res.send("not login");
+  if (req.session.user) {
+    res.json(req.session.user);
+  } else {
+    res.status(401).json(errBody(401, "session过期"));
+  }
 });
 
 router.post("/", async (req: Request, res: Response) => {
   const userinfo = await req.userService.login(req.body as USER.LoginPayload);
   if (!userinfo) {
     req.session.destroy(() => {});
-    res.statusCode = 401;
-    res.end();
+    res.status(403).end();
   }
   const { uid, nickname, email, phone, role } = userinfo;
   req.session.user = {
@@ -29,8 +31,7 @@ router.post("/", async (req: Request, res: Response) => {
     phone: phone,
     role: role,
   };
-  res.send("login successfully");
-  res.end();
+  res.json(req.session.user);
 });
 
 router.get("/testlogin", (req, res) => {

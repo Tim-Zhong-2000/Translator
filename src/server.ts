@@ -4,9 +4,9 @@ import morgan from "morgan";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 
-import CONFIG from "./utils/config"
+import CONFIG from "./utils/config";
 
-import UserServiceMiddleware from "./user/UserServiceMiddleware"
+import UserServiceMiddleware from "./user/UserServiceMiddleware";
 import index from "./routes/index";
 import login from "./routes/login";
 import logout from "./routes/logout";
@@ -26,10 +26,11 @@ declare module "express-session" {
 }
 
 declare module "express" {
-  interface Request{
+  interface Request {
     userService: UserService;
   }
 }
+
 // express初始化
 const app = express();
 
@@ -45,7 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // append UserService for all request
-app.use(UserServiceMiddleware)
+app.use(UserServiceMiddleware);
 
 // cookie and session
 app.use(cookieParser());
@@ -62,12 +63,12 @@ app.use(
 // 路由
 app.use("/", index);
 app.use("/login", login);
-app.use("/logout",logout);
+app.use("/logout", logout);
 app.use("/info", info);
 app.use("/baidu", baidu);
 app.use("/baiduapi", baiduapi);
 app.use("/google", google);
-app.use("/servicediscovery",serviceDiscovery);
+app.use("/servicediscovery", serviceDiscovery);
 
 // express启动配置
 const PORT = CONFIG.serverConfig.port;

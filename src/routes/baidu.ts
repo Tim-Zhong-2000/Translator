@@ -29,22 +29,19 @@ if (CONFIG["baidu"].enabled) {
   );
 
   router.get("/langlist", (_req, res) => {
-    res.send(JSON.stringify(baiduLangList));
-    res.end();
+    res.json(baiduLangList);
   });
 
   router.get("/reload", async (_req, res) => {
     await baiduTranslatorCrawler.autoConfig();
-    res.send("Finished");
-    res.end();
+    res.status(201).send("Finished");
   });
 
   router.get("/:srcLang/:destLang/:src", async (req, res) => {
     let src, srcLang, destLang;
     ({ src: src, srcLang: srcLang, destLang: destLang } = req.params);
     const dest = await baiduCrawlerManager.translate(src, srcLang, destLang);
-    res.send(JSON.stringify(dest));
-    res.end();
+    res.json(dest);
   });
 }
 

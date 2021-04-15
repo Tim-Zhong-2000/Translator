@@ -11,10 +11,7 @@ router.get("/", (req: Request, res: Response) => {
 router.post("/", async (req: Request, res: Response) => {
   const body: USER.RegisterPayload = req.body;
   const userinfo = await req.userService.register(body);
-  if (!userinfo) {
-    res.statusCode = 500;
-    res.end();
-  }
+  if (!userinfo) res.status(500).end();
   const { uid, nickname, email, phone, role } = userinfo;
   req.session.user = {
     uid: uid,
@@ -23,6 +20,5 @@ router.post("/", async (req: Request, res: Response) => {
     phone: phone,
     role: role,
   };
-  res.send("register successfully");
-  res.end();
+  res.status(201).json(req.session.user);
 });

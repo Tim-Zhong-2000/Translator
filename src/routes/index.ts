@@ -9,7 +9,6 @@ const router = express.Router();
 
 router.get("/",(_req,res)=>{
     res.send("123");
-    res.end();
 })
 
 export default router;
