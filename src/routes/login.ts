@@ -13,7 +13,7 @@ router.get("/", (req, res) => {
   if (req.session.user) {
     res.json(req.session.user);
   } else {
-    res.status(401).json(errBody(401, "session过期"));
+    res.status(401).json(errBody(401, "session out of date"));
   }
 });
 
@@ -22,6 +22,7 @@ router.post("/", async (req: Request, res: Response) => {
   if (!userinfo) {
     req.session.destroy(() => {});
     res.status(403).end();
+    return;
   }
   const { uid, nickname, email, phone, role } = userinfo;
   req.session.user = {

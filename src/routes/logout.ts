@@ -5,10 +5,11 @@ const router = express.Router();
 
 router.get("/", (req, res) => {
   if (!req.session || !req.session.user) {
-    res.status(401).json(errBody(401,"not login"));
+    res.status(401).json(errBody(401, "Not Login"));
+    return;
   }
   req.session.destroy((err) => {
-    if (err) res.status(500).send("Logout Fail");
+    if (err) res.status(500).json(errBody(500, "Remove Session Error"));
     res.send("Logout Successfully");
   });
 });

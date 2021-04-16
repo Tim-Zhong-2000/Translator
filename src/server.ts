@@ -10,6 +10,7 @@ import UserServiceMiddleware from "./user/UserServiceMiddleware";
 import index from "./routes/index";
 import login from "./routes/login";
 import logout from "./routes/logout";
+import register from "./routes/register";
 import info from "./routes/info";
 import baidu from "./routes/baidu";
 import baiduapi from "./routes/baiduapi";
@@ -64,6 +65,7 @@ app.use(
 app.use("/", index);
 app.use("/login", login);
 app.use("/logout", logout);
+app.use("/register", register);
 app.use("/info", info);
 app.use("/baidu", baidu);
 app.use("/baiduapi", baiduapi);
