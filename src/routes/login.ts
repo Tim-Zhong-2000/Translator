@@ -35,14 +35,14 @@ router.post("/", async (req: Request, res: Response) => {
   res.json(req.session.user);
 });
 
-router.get("/testlogin", (req, res) => {
-  req.session.user = {
-    uid: 1,
-    nickname: "admin",
-    email: "123@123.com",
-    role: USER.Role.admin,
-  };
-  res.send("test login successfully");
-});
+// router.get("/testlogin", (req, res) => {
+//   req.session.user = {
+//     uid: 1,
+//     nickname: "admin",
+//     email: "123@123.com",
+//     role: USER.Role.admin,
+//   };
+//   res.send("test login successfully");
+// });
 
 export default router;
