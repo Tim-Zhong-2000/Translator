@@ -3,7 +3,7 @@
  * @author Tim-Zhong-2000
  */
 
-import { FilterConfig, FilterResult, FilterType } from "../type/type";
+import { FilterConfig, FilterResult, FilterType } from "../../type/type";
 
 export class DefaultFilter {
   config: FilterConfig;

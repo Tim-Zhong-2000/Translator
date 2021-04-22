@@ -6,8 +6,8 @@
 import axios from "axios";
 import qs from "qs";
 import { TranslateEngine } from "../abstract/translateEngine";
-import { BaiduTranslatorConfig, BaiduPayload, TranslateLevel } from "../type/type";
-import { generatePayload } from "../utils/generatePayload";
+import { BaiduTranslatorConfig, BaiduPayload, TranslateLevel } from "../../type/type";
+import { generatePayload } from "../../utils/generatePayload";
 
 export class BaiduTranslatorCrawler extends TranslateEngine {
   configReady = false;

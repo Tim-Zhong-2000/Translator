@@ -4,7 +4,7 @@
  */
 
 import { CacheEngine } from "../abstract/cacheEngine";
-import { Payload } from "../type/type";
+import { Payload } from "../../type/type";
 
 export class EmptyCache extends CacheEngine<null> {
   constructor() {

@@ -6,11 +6,12 @@
 import express from "express";
 import CONFIG from "../utils/config";
 
-import { BaiduTranslatorAPI } from "../translateEngines/baiduTranslatorApi";
-import { DefaultTranslatorManager } from "../translateManager/DefaultTranslatorManager";
-import { baiduApiLangList } from "../langlist";
-import { DefaultFilter } from "../filter/filter";
-import { SqliteCache } from "../cacheEngines/sqlite3Cache";
+import { BaiduTranslatorAPI } from "../translator/translateEngines/baiduTranslatorApi";
+import { DefaultTranslatorManager } from "../translator/translateManager/DefaultTranslatorManager";
+import { baiduApiLangList } from "../translator/langlist";
+import { DefaultFilter } from "../translator/filter/filter";
+import { SqliteCache } from "../translator/cacheEngines/sqlite3Cache";
+import { errBody } from "../utils/errorPayload";
 
 const router = express.Router();
 
@@ -39,6 +40,10 @@ if (CONFIG["baiduapi"].enabled) {
     const { src, srcLang, destLang } = req.params;
     const dest = await baiduAPIManager.translate(src, srcLang, destLang);
     res.json(dest);
+  });
+} else {
+  router.use((_req, res) => {
+    res.status(400).json(errBody(400, "百度翻译API服务未启用"));
   });
 }
 

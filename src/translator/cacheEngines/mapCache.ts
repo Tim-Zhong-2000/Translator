@@ -4,7 +4,7 @@
  */
 
 import { CacheEngine } from "../abstract/cacheEngine";
-import { Payload, MapCacheConfig } from "../type/type";
+import { Payload, MapCacheConfig } from "../../type/type";
 
 export class MapCache extends CacheEngine<Map<string, Payload>> {
   constructor(config: MapCacheConfig) {

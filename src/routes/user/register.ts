@@ -1,20 +1,15 @@
 /**
- * @description 路由-注册
+ * @description /user/register 注册
  * @author Tim-Zhong-2000
  */
 
-import express, { Request, Response } from "express";
-import { USER } from "../type/type";
-import { errBody } from "../utils/errorPayload";
+import express, { NextFunction, Request, Response } from "express";
+import { USER } from "../../type/type";
+import { errBody } from "../../utils/errorPayload";
 
 const router = express.Router();
 
-router.get("/", (req: Request, res: Response) => {
-  // 302 -> register static frontend page
-  throw new Error("not finish");
-});
-
-router.post("/", async (req: Request, res: Response) => {
+async function checkExist(req: Request, res: Response, next: NextFunction) {
   const body: USER.RegisterPayload = req.body;
   // 检查用户是否存在
   const exist = await req.userService.findByEmail(body.email);
@@ -22,10 +17,15 @@ router.post("/", async (req: Request, res: Response) => {
     res.status(406).json(errBody(406, "当前邮箱已注册"));
     return;
   }
+  next();
+}
+
+async function doRegister(req: Request, res: Response) {
+  const body: USER.RegisterPayload = req.body;
   // 注册
   const userinfo = await req.userService.register(body);
   if (!userinfo) {
-    res.status(500).end();
+    res.status(500).json(errBody(500, "服务器错误，注册失败"));
     return;
   }
   // 更新session
@@ -38,7 +38,13 @@ router.post("/", async (req: Request, res: Response) => {
     role: role,
   };
   res.status(201).json(req.session.user);
-  return;
+}
+
+router.get("/", (req: Request, res: Response) => {
+  // 302 -> register static frontend page
+  throw new Error("not finish");
 });
+
+router.post("/", checkExist).post("/", doRegister);
 
 export default router;

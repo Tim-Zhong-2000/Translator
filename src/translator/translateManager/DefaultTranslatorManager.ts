@@ -7,8 +7,8 @@ import { CacheEngine } from "../abstract/cacheEngine";
 import { TranslateEngine } from "../abstract/translateEngine";
 import { TranslateManager } from "../abstract/translateManager";
 import { DefaultFilter } from "../filter/filter";
-import { FilterType, Payload, TranslateLevel } from "../type/type";
-import { generatePayload } from "../utils/generatePayload";
+import { FilterType, Payload, TranslateLevel } from "../../type/type";
+import { generatePayload } from "../../utils/generatePayload";
 
 export class DefaultTranslatorManager<
   CacheType
@@ -64,7 +64,7 @@ export class DefaultTranslatorManager<
     }
 
     console.time("readCache");
-    payload = await this.readCache(src, srcLang, destLang);
+    payload = await this.readCache(src, srcLang, destLang).catch();
     console.timeEnd("readCache");
 
     if (!payload) {

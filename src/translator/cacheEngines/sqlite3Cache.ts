@@ -5,7 +5,7 @@
 
 import sqlite3 = require("sqlite3");
 import { CacheEngine } from "../abstract/cacheEngine";
-import { Payload, SqliteCacheConfig, TranslateLevel } from "../type/type";
+import { Payload, SqliteCacheConfig, TranslateLevel } from "../../type/type";
 
 export class SqliteCache extends CacheEngine<sqlite3.Database> {
   constructor(config: SqliteCacheConfig) {

@@ -3,7 +3,7 @@
  * @author Tim-Zhong-2000
  */
 
-import { Payload } from "../type/type";
+import { Payload } from "../../type/type";
 
 export abstract class TranslateEngine {
   abstract translate(

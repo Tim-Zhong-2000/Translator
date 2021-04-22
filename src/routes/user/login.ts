@@ -1,27 +1,29 @@
 /**
- * @description 路由-登录
+ * @description /user/login 登录
  * @author Tim-Zhong-2000
  */
 
-import express, { Request, Response } from "express";
-import { USER } from "../type/type";
-import { errBody } from "../utils/errorPayload";
+import express, { NextFunction, Request, Response } from "express";
+import { USER } from "../../type/type";
+import { errBody } from "../../utils/errorPayload";
+import { checkLogin } from "../../utils/userSession";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  if (req.session.user) {
-    res.json(req.session.user);
-  } else {
-    res.status(401).json(errBody(401, "session out of date"));
-  }
+router.get("/", checkLogin()).get("/", (req: Request, res: Response) => {
+  res.json(req.session.user);
 });
 
 router.post("/", async (req: Request, res: Response) => {
-  const userinfo = await req.userService.login(req.body as USER.LoginPayload);
+  const userinfo = await req.userService
+    .login(req.body as USER.LoginPayload)
+    .catch(() => {
+      console.log("login fail");
+      return null;
+    });
   if (!userinfo) {
+    res.status(403).json(errBody(403, "登录失败"));
     req.session.destroy(() => {});
-    res.status(403).end();
     return;
   }
   const { uid, nickname, email, phone, role } = userinfo;

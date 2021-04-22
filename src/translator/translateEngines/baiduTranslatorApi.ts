@@ -6,8 +6,8 @@
 import axios from "axios";
 import md5 from "md5";
 import { TranslateEngine } from "../abstract/translateEngine";
-import { Payload, BaiduTranslatorAPIConfig, TranslateLevel } from "../type/type";
-import { generatePayload } from "../utils/generatePayload";
+import { Payload, BaiduTranslatorAPIConfig, TranslateLevel } from "../../type/type";
+import { generatePayload } from "../../utils/generatePayload";
 
 export class BaiduTranslatorAPI extends TranslateEngine {
   private APPID: string;

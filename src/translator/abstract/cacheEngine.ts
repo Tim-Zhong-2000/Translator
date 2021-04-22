@@ -4,7 +4,7 @@
  */
 
 import md5 from "md5";
-import { CacheIdentity, Payload } from "../type/type";
+import { CacheIdentity, Payload } from "../../type/type";
 
 export abstract class CacheEngine<T> {
   db: T = null; // 底层数据结构
