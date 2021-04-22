@@ -4,7 +4,7 @@
  */
 
 import express from "express";
-import CONFIG from "../utils/config"
+import CONFIG from "../utils/config";
 
 import { DefaultTranslatorManager } from "../translateManager/DefaultTranslatorManager";
 import { googleLanglist } from "../langlist";
@@ -36,8 +36,7 @@ if (CONFIG["google"].enabled) {
   });
 
   router.get("/:srcLang/:destLang/:src", async (req, res) => {
-    let src, srcLang, destLang;
-    ({ src: src, srcLang: srcLang, destLang: destLang } = req.params);
+    const { src, srcLang, destLang } = req.params;
     const dest = await googleTranslateManager.translate(src, srcLang, destLang);
     res.json(dest);
   });
