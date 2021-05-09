@@ -46,26 +46,27 @@ export class SqliteCache extends CacheEngine<sqlite3.Database> {
           WHERE hash=(?)"
       );
       stmt.run(reqHash);
-      stmt.each((err: Error, row: Payload) => {
-        if (err) reject(err);
-        rows.push(row);
-      });
-      stmt.finalize((err) => {
-        if (err) reject(err);
-        resolve(rows);
-      });
+      stmt.each(
+        (_err, row: Payload) => rows.push(row),
+        (err, count) => {
+          if (err) reject(new Error("数据库内部错误"));
+          else if (count === 0) reject(new Error("数据不存在"));
+          else resolve(rows);
+        }
+      );
+      stmt.finalize();
     });
-    const allResult = await sqliteProc;
-    if (allResult && allResult.length > 0) {
+    try {
+      const allResult = await sqliteProc;
       console.log(`HIT:\t${decodeURI(src)}`);
       return this.optimizeResults(allResult);
-    } else {
+    } catch (err) {
       console.log(`MISS:\t${decodeURI(src)}`);
-      throw new Error("MISS");
+      throw err;
     }
   }
 
-  insert(payload: Payload): void {
+  insert(payload: Payload) {
     if (!payload.success) throw new Error("you cant cache a fail payload");
     const {
       level,
@@ -83,25 +84,35 @@ export class SqliteCache extends CacheEngine<sqlite3.Database> {
       destLang,
       this.serivceProviderName
     );
-    const stmt = this.db.prepare(
-      "INSERT INTO cache VALUES (?,?,?,?,?,?,?,?,?,?)"
-    );
-    stmt.run(
-      reqHash,
-      this.serivceProviderName,
-      level,
-      src,
-      dest,
-      srcLang,
-      destLang,
-      tts,
-      ttsSrc,
-      ttsDest
-    );
-    stmt.finalize();
+    return new Promise<boolean>((resolve, reject) => {
+      const stmt = this.db.prepare(
+        "INSERT INTO cache VALUES (?,?,?,?,?,?,?,?,?,?)"
+      );
+      stmt.run(
+        reqHash,
+        this.serivceProviderName,
+        level,
+        src,
+        dest,
+        srcLang,
+        destLang,
+        tts,
+        ttsSrc,
+        ttsDest
+      );
+      stmt.finalize((err) => {
+        if (err) reject(new Error("数据库内部错误"));
+        else resolve(true);
+      });
+    });
   }
 
-  optimizeResults(allResults: Payload[]) {
+  /**
+   * 选出最佳的一条翻译
+   * @param allResults 数据库查询结果
+   * @returns
+   */
+  optimizeResults(allResults: Payload[]): Payload {
     const typeArr = allResults.map((result) => result.level);
     const priority = [
       TranslateLevel.VERIFIED,
