@@ -32,7 +32,19 @@ export class UserService {
         role        INTEGER               NOT NULL,\
         create_at   TEXT                  NOT NULL,\
         active      BOOLEAN               NOT NULL\
-      )"
+      )",
+      () => {
+        this.register({
+          nickname: "admin",
+          email: "1@123.com",
+          password: "123456",
+        });
+        this.register({
+          nickname: "test2",
+          email: "2@123.com",
+          password: "123456",
+        }).catch(() => {});
+      }
     );
   }
 
@@ -57,8 +69,25 @@ export class UserService {
    */
   async register(user: USER.RegisterPayload) {
     const { email, phone, password, nickname } = user;
+    if (
+      await this.findByEmail(email).catch(() => {
+        return false;
+      })
+    ) {
+      throw new Error("邮箱已存在");
+    }
+
+    if (phone)
+      if (
+        await this.findByPhone(phone).catch(() => {
+          return false;
+        })
+      ) {
+        throw new Error("手机号码已存在");
+      }
+
     try {
-      await this.insertUser(email, phone, md5(password), nickname);
+      await this.insertUser(email, nickname, md5(password), phone);
       return await this.authUser(email, md5(password), "email");
     } catch (err) {
       throw errorHandler(err);
@@ -220,7 +249,7 @@ export class UserService {
         password,
         USER.Role.guest,
         Date.now(),
-        false
+        true
       );
       stmt.finalize((err) => {
         if (err) reject(USER.DBError.INTERNAL_ERROR);
