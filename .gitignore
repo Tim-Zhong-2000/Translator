@@ -92,3 +92,6 @@ Thumbs.db
 
 # Yalc
 .yalc/
+
+# database
+*.db
