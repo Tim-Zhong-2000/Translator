@@ -66,7 +66,7 @@ export class GoogleTranslatorCrawler extends TranslateEngine {
             resolve(res.data[0][0][0] as string);
           }
         })
-        .catch((e) => reject);
+        .catch((e) => reject(e));
     });
   }
 
