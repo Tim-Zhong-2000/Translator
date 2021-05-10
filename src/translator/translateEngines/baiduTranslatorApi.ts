@@ -6,7 +6,7 @@
 import axios from "axios";
 import md5 from "md5";
 import { TranslateEngine } from "../abstract/translateEngine";
-import { Payload, BaiduTranslatorAPIConfig, TranslateLevel } from "../../type/type";
+import { Payload, BaiduTranslatorAPIConfig, TranslateLevel } from "../../type/Translator";
 import { generatePayload } from "../../utils/generatePayload";
 
 export class BaiduTranslatorAPI extends TranslateEngine {

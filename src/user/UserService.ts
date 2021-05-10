@@ -1,6 +1,7 @@
-import { Database, USER } from "../type/type";
 import sqlite3 = require("sqlite3");
 import md5 from "md5";
+import { USER } from "../type/User";
+import { Database } from "../type/type";
 
 function errorHandler(err: USER.DBError) {
   if (typeof err !== "number") return new Error("未知错误");

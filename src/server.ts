@@ -15,7 +15,7 @@ import baiduapi from "./routes/baiduapi";
 import google from "./routes/google";
 import serviceDiscovery from "./routes/serviceDiscovery";
 
-import { USER } from "./type/type";
+import { USER } from "./type/User";
 import { UserService } from "./user/UserService";
 
 declare module "express-session" {
