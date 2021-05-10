@@ -6,7 +6,11 @@
 import axios from "axios";
 import qs from "qs";
 import { TranslateEngine } from "../abstract/translateEngine";
-import { BaiduTranslatorConfig, BaiduPayload, TranslateLevel } from "../../type/type";
+import {
+  BaiduTranslatorConfig,
+  BaiduPayload,
+  TranslateLevel,
+} from "../../type/type";
 import { generatePayload } from "../../utils/generatePayload";
 
 export class BaiduTranslatorCrawler extends TranslateEngine {
@@ -41,7 +45,11 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
   /**
    * 自动设置token，gtk，cookie，UA
    */
-  async autoConfig() {
+  async autoConfig(retry = 0) {
+    if (retry && retry > 10) {
+      console.log("自动配置失败，请检查网络");
+      return;
+    }
     console.log("开始自动配置");
     console.log("开始第一次请求");
     const res1 = await axios.get("https://fanyi.baidu.com/").catch(() => {
@@ -53,7 +61,7 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
       this.cookie = this.getCookie(res1);
       console.log(`成功设置cookie: ${this.cookie}`);
     } else {
-      this.autoConfig();
+      this.autoConfig(retry + 1);
       return;
     }
     console.log("开始第二次请求");
@@ -71,14 +79,14 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
       this.token = this.getToken(res2["data"]);
       console.log(`成功设置token: ${this.token}`);
     } else {
-      this.autoConfig();
+      this.autoConfig(retry + 1);
       return;
     }
     console.log(`自动配置完成`);
     this.configReady = true;
     setTimeout(() => {
       console.log("Update config using autoConfig");
-      this.autoConfig();
+      this.autoConfig(retry + 1);
     }, 6 * 60 * 60 * 1000);
   }
 
@@ -107,7 +115,14 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     destLang: string = "zh"
   ) {
     if (srcLang === destLang) {
-      return generatePayload(true, TranslateLevel.VERIFIED, src, src, srcLang, destLang);
+      return generatePayload(
+        true,
+        TranslateLevel.VERIFIED,
+        src,
+        src,
+        srcLang,
+        destLang
+      );
     }
     if (!this.configReady)
       throw new Error("Please WAIT: auto config is not finished");
