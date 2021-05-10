@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { USER } from "../type/type";
+import { USER } from "../type/User";
 import { errBody } from "./errorPayload";
 
 export function checkLogin() {

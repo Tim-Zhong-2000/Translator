@@ -3,7 +3,7 @@
  * @author Tim-Zhong-2000
  */
 
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import { errBody } from "../../utils/errorPayload";
 import { checkLogin } from "../../utils/userSession";
 

@@ -1,4 +1,4 @@
-import { Payload, TranslateLevel } from "../type/type";
+import { Payload, TranslateLevel } from "../type/Translator";
 
 export function generatePayload(
   success: boolean,
