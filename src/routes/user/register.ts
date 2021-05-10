@@ -17,7 +17,7 @@ async function doRegister(req: Request, res: Response) {
   try {
     userinfo = await req.userService.register(body);
   } catch (err) {
-    res.status(500).json(errBody(500, "服务器错误，注册失败", err.message));
+    res.status(500).json(errBody(500, "注册失败", err.message));
     return;
   }
   // 更新session
