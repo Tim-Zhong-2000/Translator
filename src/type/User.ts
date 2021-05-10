@@ -49,5 +49,6 @@ export namespace USER {
     "AUTH_FAIL",
     "COUNT_TOOMUCH",
     "INTERNAL_ERROR",
+    "TYPE_UNSAFE" // 用于初始化sql的变量类型非法
   }
 }
