@@ -12,18 +12,26 @@ const router = express.Router();
 async function checkExist(req: Request, res: Response, next: NextFunction) {
   const body: USER.RegisterPayload = req.body;
   // 检查用户是否存在
-  const exist = await req.userService.findByEmail(body.email);
-  if (exist) {
+  try {
+    await req.userService.findByEmail(body.email);
     res.status(406).json(errBody(406, "当前邮箱已注册"));
-    return;
+  } catch (err) {
+    console.log(err)
+    if (typeof err === "number" && err == USER.DBError.NOT_EXIST) {
+      next();
+    } else {
+      res
+        .status(500)
+        .json(errBody(500, "服务器错误，检查用户是否存在出现异常"));
+    }
   }
-  next();
 }
 
 async function doRegister(req: Request, res: Response) {
   const body: USER.RegisterPayload = req.body;
   // 注册
   let userinfo: USER.UserDbItem;
+  console.log(body);
   try {
     userinfo = await req.userService.register(body);
   } catch (err) {
