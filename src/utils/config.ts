@@ -13,4 +13,5 @@ const CONFIG = JSON.parse(
     "utf-8"
   )
 );
+
 export default CONFIG;

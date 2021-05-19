@@ -35,6 +35,7 @@ cd Translator
 docker build tim-translator:1.0 .
 ```
 ## 所需依赖
+### node_modules
 1. `axios` 用于请求翻译api
 2. `cookie-parser` 用于实现用户态
 3. `cors` 允许跨域中间件（调试）
@@ -47,3 +48,7 @@ docker build tim-translator:1.0 .
 10. `qs` 构建URL工具
 11. `sqlite3` 数据库引擎
 12. `typescript` 编译器
+
+### external tool
+1. `leptonia` 图像预处理工具
+2. `tesseract` OCR工具
