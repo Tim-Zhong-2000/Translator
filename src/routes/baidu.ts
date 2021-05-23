@@ -8,10 +8,10 @@ import CONFIG from "../utils/config";
 
 import { BaiduTranslatorCrawler } from "../translator/translateEngines/baiduTranslatorCrawler";
 import { DefaultTranslatorManager } from "../translator/translateManager/DefaultTranslatorManager";
-import { baiduLangList } from "../translator/langlist";
 import { DefaultFilter } from "../translator/filter/filter";
 import { SqliteCache } from "../translator/cacheEngines/sqlite3Cache";
 import { errBody } from "../utils/errorPayload";
+import { LangList } from "../translator/langlist";
 
 const router = express.Router();
 
@@ -30,7 +30,7 @@ if (CONFIG["baidu"].enabled) {
   );
 
   router.get("/langlist", (_req, res) => {
-    res.json(baiduLangList);
+    res.json(LangList);
   });
 
   router.get("/reload", async (_req, res) => {

@@ -1,61 +1,14 @@
-export const baiduLangList = {
-  src: [
-    { name: "自动识别(不可用)", value: "auto" },
-    { name: "日语", value: "jp" },
-    { name: "英语", value: "en" },
-    { name: "简体中文", value: "zh" },
-    { name: "繁体中文", value: "cht" },
-    { name: "西班牙语", value: "spa" },
-    { name: "俄语", value: "ru" },
-    { name: "韩语", value: "kor" },
-    { name: "法语", value: "fra" },
-    { name: "世界语", value: "epo" },
-  ],
-  dest: [
-    { name: "简体中文", value: "zh" },
-    { name: "繁体中文", value: "cht" },
-    { name: "日语", value: "jp" },
-    { name: "英语", value: "en" },
-    { name: "西班牙语", value: "spa" },
-    { name: "俄语", value: "ru" },
-    { name: "韩语", value: "kor" },
-    { name: "法语", value: "fra" },
-    { name: "世界语", value: "epo" },
-  ],
-};
+import ISO963_1 from "../type/ISO963";
 
-export const baiduApiLangList = {
+export const LangList: {
+  src: { name: string; value: ISO963_1 }[];
+  dest: { name: string; value: ISO963_1 }[];
+} = {
   src: [
-    { name: "自动识别", value: "auto" },
-    { name: "日语", value: "jp" },
     { name: "英语", value: "en" },
-    { name: "简体中文", value: "zh" },
-    { name: "繁体中文", value: "cht" },
-    { name: "西班牙语", value: "spa" },
-    { name: "俄语", value: "ru" },
-    { name: "韩语", value: "kor" },
-    { name: "法语", value: "fra" },
-    { name: "世界语", value: "epo" },
-  ],
-  dest: [
-    { name: "简体中文", value: "zh" },
-    { name: "繁体中文", value: "cht" },
-    { name: "日语", value: "jp" },
-    { name: "英语", value: "en" },
-    { name: "西班牙语", value: "spa" },
-    { name: "俄语", value: "ru" },
-    { name: "韩语", value: "kor" },
-    { name: "法语", value: "fra" },
-    { name: "世界语", value: "epo" },
-  ],
-};
-
-export const googleLanglist = {
-  src: [
     { name: "日语", value: "ja" },
-    { name: "英语", value: "en" },
-    { name: "简体中文", value: "zh" },
-    { name: "繁体中文", value: "zh-TW" },
+    { name: "简体中文", value: "zh_CN" },
+    { name: "繁体中文", value: "zh_TW" },
     { name: "西班牙语", value: "es" },
     { name: "俄语", value: "ru" },
     { name: "韩语", value: "ko" },
@@ -63,8 +16,8 @@ export const googleLanglist = {
     { name: "世界语", value: "eo" },
   ],
   dest: [
-    { name: "简体中文", value: "zh" },
-    { name: "繁体中文", value: "zh-TW" },
+    { name: "简体中文", value: "zh_CN" },
+    { name: "繁体中文", value: "zh_TW" },
     { name: "日语", value: "ja" },
     { name: "英语", value: "en" },
     { name: "西班牙语", value: "es" },

@@ -7,6 +7,8 @@ import axios from "axios";
 import { TranslateEngine } from "../abstract/translateEngine";
 import { Payload, TranslateLevel } from "../../type/Translator";
 import { generatePayload } from "../../utils/generatePayload";
+import ISO963_1 from "../../type/ISO963";
+import { getGoogleLangCode } from "../../utils/LangCode";
 
 export class GoogleTranslatorCrawler extends TranslateEngine {
   UA = "";
@@ -29,8 +31,8 @@ export class GoogleTranslatorCrawler extends TranslateEngine {
    */
   async translate(
     src: string,
-    srcLang: string = "en",
-    destLang: string = "zh"
+    srcLang: ISO963_1 = "en",
+    destLang: ISO963_1 = "zh_CN"
   ): Promise<Payload> {
     const dest = await this.googleTranslate(src, srcLang, destLang);
     if (!dest) {
@@ -43,17 +45,26 @@ export class GoogleTranslatorCrawler extends TranslateEngine {
         destLang
       );
     } else {
-      return generatePayload(true, TranslateLevel.AI, src, dest, srcLang, destLang);
+      return generatePayload(
+        true,
+        TranslateLevel.AI,
+        src,
+        dest,
+        srcLang,
+        destLang
+      );
     }
   }
 
   googleTranslate(
     src: string,
-    srcLang: string,
-    destLang: string
+    srcLang: ISO963_1,
+    destLang: ISO963_1
   ): Promise<string> {
     const api = "https://translate.google.cn/translate_a/single";
-    const url = `${api}?client=t&sl=${srcLang}&tl=${destLang}&dt=rm&dt=t&tk=${this.googleToken(
+    const url = `${api}?client=t&sl=${getGoogleLangCode(
+      srcLang
+    )}&tl=${getGoogleLangCode(destLang)}&dt=rm&dt=t&tk=${this.googleToken(
       src
     )}&q=${encodeURIComponent(src)}`;
     return new Promise((resolve, reject) => {

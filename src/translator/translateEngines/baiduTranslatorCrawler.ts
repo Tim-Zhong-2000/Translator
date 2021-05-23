@@ -12,6 +12,8 @@ import {
   TranslateLevel,
 } from "../../type/Translator";
 import { generatePayload } from "../../utils/generatePayload";
+import { getBaiduLangCode } from "../../utils/LangCode";
+import ISO963_1 from "../../type/ISO963";
 
 export class BaiduTranslatorCrawler extends TranslateEngine {
   configReady = false;
@@ -57,7 +59,7 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     // 第一次请求获取cookie
     console.log("开始第一次请求");
     try {
-      const res = await axios.get("https://fanyi.baidu.com/")
+      const res = await axios.get("https://fanyi.baidu.com/");
       this.cookie = this.getCookie(res);
       console.log(`成功设置cookie: ${this.cookie}`);
     } catch (err) {
@@ -69,10 +71,9 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     // 第二次请求获取gtk和token
     console.log("开始第二次请求");
     try {
-      const res = await axios
-        .get("https://fanyi.baidu.com/", {
-          headers: this.getHeader(),
-        })
+      const res = await axios.get("https://fanyi.baidu.com/", {
+        headers: this.getHeader(),
+      });
       this.gtk = this.getGtk(res["data"]);
       console.log(`成功设置gtk: ${this.gtk}`);
       this.token = this.getToken(res["data"]);
@@ -114,8 +115,8 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
    */
   async translate(
     src: string,
-    srcLang: string = "jp",
-    destLang: string = "zh"
+    srcLang: ISO963_1 = "ja",
+    destLang: ISO963_1 = "zh_CN"
   ) {
     if (srcLang === destLang) {
       return generatePayload(
@@ -132,7 +133,9 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     const header = this.getHeader();
     const body = this.getBody(src, srcLang, destLang);
     const res = await axios.post(
-      `https://fanyi.baidu.com/v2transapi?from=${srcLang}&to=${destLang}`,
+      `https://fanyi.baidu.com/v2transapi?from=${getBaiduLangCode(
+        srcLang
+      )}&to=${getBaiduLangCode(destLang)}`,
       body,
       { headers: header }
     );
@@ -215,9 +218,9 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     } else {
       for (
         var e = src.split(/[\uD800-\uDBFF][\uDC00-\uDFFF]/),
-        C = 0,
-        h = e.length,
-        f: string[] = [];
+          C = 0,
+          h = e.length,
+          f: string[] = [];
         h > C;
         C++
       )
@@ -234,11 +237,11 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
     const u = this.gtk;
     for (
       var d = u.split("."),
-      m = Number(d[0]) || 0,
-      s = Number(d[1]) || 0,
-      S = [],
-      c = 0,
-      v = 0;
+        m = Number(d[0]) || 0,
+        s = Number(d[1]) || 0,
+        S = [],
+        c = 0,
+        v = 0;
       v < src.length;
       v++
     ) {
@@ -246,16 +249,16 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
       128 > A
         ? (S[c++] = A)
         : (2048 > A
-          ? (S[c++] = (A >> 6) | 192)
-          : (55296 === (64512 & A) &&
-            v + 1 < src.length &&
-            56320 === (64512 & src.charCodeAt(v + 1))
-            ? ((A =
-              65536 + ((1023 & A) << 10) + (1023 & src.charCodeAt(++v))),
-              (S[c++] = (A >> 18) | 240),
-              (S[c++] = ((A >> 12) & 63) | 128))
-            : (S[c++] = (A >> 12) | 224),
-            (S[c++] = ((A >> 6) & 63) | 128)),
+            ? (S[c++] = (A >> 6) | 192)
+            : (55296 === (64512 & A) &&
+              v + 1 < src.length &&
+              56320 === (64512 & src.charCodeAt(v + 1))
+                ? ((A =
+                    65536 + ((1023 & A) << 10) + (1023 & src.charCodeAt(++v))),
+                  (S[c++] = (A >> 18) | 240),
+                  (S[c++] = ((A >> 12) & 63) | 128))
+                : (S[c++] = (A >> 12) | 224),
+              (S[c++] = ((A >> 6) & 63) | 128)),
           (S[c++] = (63 & A) | 128));
     }
     for (var p = m, F = "+-a^+6", D = "+-3^+b+-f", b = 0; b < S.length; b++)

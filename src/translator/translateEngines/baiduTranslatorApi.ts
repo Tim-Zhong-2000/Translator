@@ -6,8 +6,14 @@
 import axios from "axios";
 import md5 from "md5";
 import { TranslateEngine } from "../abstract/translateEngine";
-import { Payload, BaiduTranslatorAPIConfig, TranslateLevel } from "../../type/Translator";
+import {
+  Payload,
+  BaiduTranslatorAPIConfig,
+  TranslateLevel,
+} from "../../type/Translator";
 import { generatePayload } from "../../utils/generatePayload";
+import ISO963_1 from "../../type/ISO963";
+import { getBaiduLangCode } from "../../utils/LangCode";
 
 export class BaiduTranslatorAPI extends TranslateEngine {
   private APPID: string;
@@ -38,11 +44,18 @@ export class BaiduTranslatorAPI extends TranslateEngine {
    */
   async translate(
     src: string,
-    srcLang: string = "jp",
-    destLang: string = "zh"
+    srcLang: ISO963_1 = "ja",
+    destLang: ISO963_1 = "zh_CN"
   ) {
     if (srcLang === destLang) {
-      return generatePayload(true, TranslateLevel.VERIFIED, src, src, srcLang, destLang);
+      return generatePayload(
+        true,
+        TranslateLevel.VERIFIED,
+        src,
+        src,
+        srcLang,
+        destLang
+      );
     }
     if (this.isConfigEmpty) {
       return generatePayload(
@@ -56,9 +69,9 @@ export class BaiduTranslatorAPI extends TranslateEngine {
     }
     const res = await axios.get(
       `https://fanyi-api.baidu.com/api/trans/vip/translate` +
-        `?q=${src}&from=${srcLang}&to=${destLang}&appid=${this.APPID}&salt=${
-          this.SALT
-        }&sign=${this.sign(src)}`
+        `?q=${src}&from=${getBaiduLangCode(srcLang)}&to=${getBaiduLangCode(
+          destLang
+        )}&appid=${this.APPID}&salt=${this.SALT}&sign=${this.sign(src)}`
     );
     if (!!res && !!res.data) {
       try {
