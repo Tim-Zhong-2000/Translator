@@ -15,6 +15,10 @@ router.get("/", checkLogin()).get("/", (req: Request, res: Response) => {
 });
 
 router.post("/", async (req: Request, res: Response) => {
+  if (req.session.user) {
+    res.status(400).json(errBody(400, "您已登录一个账号，请先退出"));
+    return;
+  }
   let userinfo: USER.UserDbItem;
   try {
     userinfo = await req.userService.login(req.body as USER.LoginPayload);
