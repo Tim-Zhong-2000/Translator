@@ -39,17 +39,19 @@ export class UserService {
         friendres   TEXT                  NOT NULL,\
         active      BOOLEAN               NOT NULL\
       )",
-      () => {
-        this.register({
+      async () => {
+        await this.register({
           nickname: "admin",
           email: "1@123.com",
           password: "123456",
         }).catch(() => {});
-        this.register({
-          nickname: "test2",
-          email: "2@123.com",
-          password: "123456",
-        }).catch(() => {});
+        for (let i = 2; i < 50; i++) {
+          await this.register({
+            nickname: `test${i}`,
+            email: `${i}@123.com`,
+            password: "123456",
+          }).catch(() => {});
+        }
       }
     );
   }
@@ -386,7 +388,6 @@ export class UserService {
           sql,
           list,
           (err: Error, rows: { uid: number; nickname: string }[]) => {
-            console.log(err)
             if (err) reject(err);
             else resolve(rows);
           }
@@ -467,6 +468,7 @@ export class UserService {
     friend: number,
     listname: "friends" | "friendreq" | "friendres"
   ) {
+    if (uid === friend) throw new Error("cannot add yourself");
     const friendList = JSON.parse(
       (await this.findByUid(uid))[listname]
     ) as number[];
@@ -477,7 +479,7 @@ export class UserService {
       );
     }
     friendList.push(friend);
-    await this.updateUser(uid, JSON.stringify(friendList), "friends");
+    await this.updateUser(uid, JSON.stringify(friendList), listname);
   }
 
   /**
