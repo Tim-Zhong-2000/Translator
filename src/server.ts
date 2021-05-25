@@ -39,7 +39,7 @@ const app = express();
 app.use(cors());
 
 // logger
-app.use(morgan("combined"));
+// app.use(morgan("combined"));
 
 // post body
 app.use(express.urlencoded({ extended: true }));

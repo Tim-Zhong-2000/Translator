@@ -1,6 +1,6 @@
 {
   "baidu": {
-    "enabled": false,
+    "enabled": true,
     "translatorSetting": {
       "gtk": "",
       "cookie": "",
