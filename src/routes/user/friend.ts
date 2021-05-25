@@ -63,6 +63,7 @@ router.copy("/req", async (req: Request, res: Response) => {
 router.post("/req/:friendid", async (req: Request, res: Response) => {
   try {
     const friendId = Number(req.params.friendid);
+    console.log(friendId)
     await req.userService.addFriend(req.session.user.uid, friendId);
     const friendReq = await req.userService.getFriendDetail(
       req.session.user.uid,

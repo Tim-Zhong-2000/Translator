@@ -11,6 +11,7 @@ import updatePassword from "./updatePassword";
 import updateInfo from "./updateInfo";
 import updateRole from "./updateRole";
 import deleteUser from "./deleteUser";
+import friend from "./friend";
 
 const router = express.Router();
 
@@ -21,5 +22,6 @@ router.use("/update-password", updatePassword);
 router.use("/update-info", updateInfo);
 router.use("/update-role", updateRole);
 router.use("/delete-user", deleteUser);
+router.use("/friend", friend);
 
 export default router;

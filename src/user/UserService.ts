@@ -377,15 +377,16 @@ export class UserService {
     const dbItem = await this.findByUid(uid);
     const list = JSON.parse(dbItem[listname]) as number[];
     if (list.length === 0) return [];
-    let sql = "SELECT uid,nickname FROM data WHERE"
+    let sql = "SELECT uid,nickname FROM user WHERE"
       .concat(" uid=? OR".repeat(list.length - 1))
-      .concat("uid=?");
+      .concat(" uid=?");
     return new Promise<{ uid: number; nickname: string }[]>(
       (resolve, reject) => {
         this.db.all(
           sql,
           list,
-          (_: any, err: Error, rows: { uid: number; nickname: string }[]) => {
+          (err: Error, rows: { uid: number; nickname: string }[]) => {
+            console.log(err)
             if (err) reject(err);
             else resolve(rows);
           }
