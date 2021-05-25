@@ -39,6 +39,7 @@ router.post(
         req.session.user.uid,
         USER.PrivacyLabel.public
       );
+      res.json({ msg: "更新翻译成功" });
     } catch (err) {
       res.status(500).json(errBody(500, "err"));
     }

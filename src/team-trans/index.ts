@@ -5,6 +5,7 @@ import { CacheEngine } from "../translator/abstract/cacheEngine";
 import { Payload, TranslateLevel } from "../type/Translator";
 import { checkArrayType, NumberChecker } from "../utils/checkArrayType";
 import { generatePayload } from "../utils/generatePayload";
+import { USER } from "../type/User";
 
 export class TeamTrans {
   db: sqlite3.Database;
@@ -52,7 +53,6 @@ export class TeamTrans {
     provider: number,
     privacy: number
   ) {
-    let stmt: sqlite3.Statement;
     try {
       if (await this.isExist(src, srcLang, destLang, provider)) {
         return await this.update(
@@ -85,15 +85,13 @@ export class TeamTrans {
     privacy: number
   ) {
     return new Promise((resolve, reject) => {
-      const stmt = this.db.prepare(
-        "INSERT INTO data VALUES (?,?,?,?,?,?,?,?,?)"
-      );
+      const stmt = this.db.prepare("INSERT INTO data VALUES (?,?,?,?,?,?,?,?)");
       stmt.run(
         CacheEngine.generateHashKey(
           src,
           srcLang,
           destLang,
-          provider.toString()
+          privacy === USER.PrivacyLabel.public ? "0" : provider.toString()
         ),
         provider,
         privacy,
@@ -120,9 +118,15 @@ export class TeamTrans {
   ) {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(
-        "UPDATE data SET dest=(?) privacy=(?) WHERE hash=(?)"
+        "UPDATE data SET hash=(?), dest=(?), privacy=(?) WHERE hash=(?)"
       );
       stmt.run(
+        CacheEngine.generateHashKey(
+          src,
+          srcLang,
+          destLang,
+          USER.PrivacyLabel.public ? "0" : provider.toString()
+        ),
         dest,
         privacy,
         CacheEngine.generateHashKey(src, srcLang, destLang, provider.toString())
@@ -150,41 +154,36 @@ export class TeamTrans {
     if (!checkArrayType(providers, NumberChecker)) {
       throw new Error("Type Unsafe");
     }
+    providers.push(0); // 0为公开翻译
     const len = providers.length;
-    let sql = "SELECT provider,dest,level FROM data WHERE privacy<2 AND (";
-    for (let i = 0; i < len; i++) {
-      sql += " hash = ? ";
-      if (i !== len - 1) {
-        sql += "OR";
-      } else {
-        sql += ")";
-      }
-    }
-    const result: Payload[] = [];
-    const query = new Promise((resolve, reject) => {
-      this.db.each(
-        sql,
-        (_: any, err: Error, row: any) => {
-          result.push(
-            generatePayload(
-              true,
-              row.level,
-              src,
-              row.dest,
-              srcLang,
-              destLang,
-              row.provider.toString()
+    const sql =
+      "SELECT provider,dest,level FROM data WHERE privacy<2 AND ( " +
+      "hash=(?) OR ".repeat(len - 1) +
+      "hash=(?) )";
+    const params = providers.map((provider) =>
+      CacheEngine.generateHashKey(src, srcLang, destLang, provider.toString())
+    );
+    const query = new Promise<Payload[]>((resolve, reject) => {
+      this.db.all(sql, params, (err: Error, rows: any[]) => {
+        if (err) reject(err);
+        else {
+          resolve(
+            rows.map((row) =>
+              generatePayload(
+                true,
+                row.level,
+                src,
+                row.dest,
+                srcLang,
+                destLang,
+                row.provider.toString()
+              )
             )
           );
-        },
-        (err, count) => {
-          if (err) reject(err);
-          else resolve(count);
         }
-      );
+      });
     });
-    await query;
-    return result;
+    return await query;
   }
 
   /**
@@ -196,14 +195,15 @@ export class TeamTrans {
    */
   delete(src: string, srcLang: ISO963_1, destLang: ISO963_1, provider: number) {
     return new Promise((resolve, reject) => {
-      const stmt = this.db.prepare(
-        "DELETE FROM data WHERE provider=(?) AND src=(?) AND srcLang=(?) AND destLang=(?)"
+      const params = [provider, src, srcLang, destLang];
+      this.db.run(
+        "DELETE FROM data WHERE provider=(?) AND src=(?) AND srcLang=(?) AND destLang=(?)",
+        params,
+        (err) => {
+          if (err) reject(err);
+          else resolve(true);
+        }
       );
-      stmt.run(provider, src, srcLang, destLang);
-      stmt.finalize((err) => {
-        if (err) reject(err);
-        else resolve(true);
-      });
     });
   }
 
@@ -213,16 +213,11 @@ export class TeamTrans {
     destLang: ISO963_1,
     provider: number
   ) {
-    const hash = CacheEngine.generateHashKey(
-      src,
-      srcLang,
-      destLang,
-      provider.toString()
-    );
     return new Promise((resolve, reject) => {
-      const stmt = this.db.prepare("SELECT NULL FROM data WHERE hash=(?)");
-      stmt.run(hash);
-      stmt.each(
+      const params = [src, provider, srcLang, destLang];
+      this.db.each(
+        "SELECT NULL FROM data WHERE src=(?) AND provider=(?) AND srcLang=(?) AND destLang=(?)",
+        params,
         () => {},
         (err, count) => {
           if (err) reject(err);
