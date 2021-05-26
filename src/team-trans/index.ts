@@ -1,3 +1,8 @@
+/**
+ * @description 人工翻译模块
+ * @author Tim-Zhong-2000
+ */
+
 import CONFIG from "../utils/config";
 import sqlite3 = require("sqlite3");
 import ISO963_1 from "../type/ISO963";
@@ -9,6 +14,7 @@ import { USER } from "../type/User";
 
 export class TeamTrans {
   db: sqlite3.Database;
+  
   constructor() {
     this.db = new sqlite3.Database(CONFIG["team-trans"].db.host || ":memory:");
     /**
@@ -36,13 +42,13 @@ export class TeamTrans {
   }
 
   /**
-   * 添加一条人工翻译
-   * 如果已存在，修改当前翻译
+   * ## 添加一条人工翻译
+   * 如果已存在，更新当前翻译
    * @param src
    * @param srcLang
    * @param dest
    * @param destLang
-   * @param provider
+   * @param provider 当前用户uid
    * @param privacy
    */
   async add(
@@ -51,31 +57,25 @@ export class TeamTrans {
     dest: string,
     destLang: ISO963_1,
     provider: number,
-    privacy: number
+    privacy: USER.PrivacyLabel
   ) {
-    try {
-      if (await this.isExist(src, srcLang, destLang, provider)) {
-        return await this.update(
-          src,
-          srcLang,
-          dest,
-          destLang,
-          provider,
-          privacy
-        );
-      } else {
-        return await this.insert(
-          src,
-          srcLang,
-          dest,
-          destLang,
-          provider,
-          privacy
-        );
-      }
-    } catch (err) {}
+    if (await this.isExist(src, srcLang, destLang, provider)) {
+      return await this.update(src, srcLang, dest, destLang, provider, privacy);
+    } else {
+      return await this.insert(src, srcLang, dest, destLang, provider, privacy);
+    }
   }
 
+  /**
+   * ## 新建人工翻译
+   * @param src
+   * @param srcLang
+   * @param dest
+   * @param destLang
+   * @param provider
+   * @param privacy
+   * @returns
+   */
   private insert(
     src: string,
     srcLang: ISO963_1,
@@ -108,13 +108,23 @@ export class TeamTrans {
     });
   }
 
+  /**
+   * ## 更新人工翻译
+   * @param src
+   * @param srcLang
+   * @param dest
+   * @param destLang
+   * @param provider
+   * @param privacy
+   * @returns
+   */
   private update(
     src: string,
     srcLang: ISO963_1,
     dest: string,
     destLang: ISO963_1,
     provider: number,
-    privacy: number
+    privacy: USER.PrivacyLabel
   ) {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(
@@ -139,7 +149,10 @@ export class TeamTrans {
   }
 
   /**
-   * 获取翻译
+   * ## 获取翻译
+   * 获取的翻译包含:
+   * 1. 所有privacy为`USER.PrivacyLabel.public`的公开翻译
+   * 2. providers数组中的用户
    * @param src
    * @param srcLang
    * @param destLang
@@ -187,13 +200,18 @@ export class TeamTrans {
   }
 
   /**
-   * 删除翻译
+   * ## 删除翻译
    * @param src
    * @param srcLang
    * @param destLang
    * @param provider
    */
-  delete(src: string, srcLang: ISO963_1, destLang: ISO963_1, provider: number) {
+  delete(
+    src: string,
+    srcLang: ISO963_1,
+    destLang: ISO963_1,
+    provider: USER.PrivacyLabel
+  ) {
     return new Promise((resolve, reject) => {
       const params = [provider, src, srcLang, destLang];
       this.db.run(
@@ -207,6 +225,19 @@ export class TeamTrans {
     });
   }
 
+  /**
+   * ## 判断翻译是否存在
+   * 依据以下四个参数
+   * 1. src
+   * 2. srcLang
+   * 3. destLang
+   * 4. provider
+   * @param src
+   * @param srcLang
+   * @param destLang
+   * @param provider
+   * @returns
+   */
   isExist(
     src: string,
     srcLang: ISO963_1,

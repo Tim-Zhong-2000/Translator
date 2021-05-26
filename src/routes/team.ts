@@ -15,49 +15,75 @@ const router = express.Router();
 
 router.use(checkLogin());
 
-router.get("/:srcLang/:destLang/:src", async (req: Request, res: Response) => {
+/**
+ * ## 获取人工翻译
+ * @param req 
+ * @param res 
+ */
+const getTranslate = async (req: Request, res: Response) => {
   const { src, srcLang, destLang } = req.params;
-  const dest = await teamTranslator.get(
-    src,
-    srcLang as ISO963_1,
-    destLang as ISO963_1,
-    req.session.user.friends.map((val) => val.uid)
-  );
-  res.json(dest);
-});
-
-router.post(
-  "/:srcLang/:destLang/:src/:dest",
-  async (req: Request, res: Response) => {
-    const { src, srcLang, dest, destLang } = req.params;
-    try {
-      await teamTranslator.add(
-        src,
-        srcLang as ISO963_1,
-        dest,
-        destLang as ISO963_1,
-        req.session.user.uid,
-        USER.PrivacyLabel.public
-      );
-      res.json({ msg: "更新翻译成功" });
-    } catch (err) {
-      res.status(500).json(errBody(500, "err"));
-    }
+  const providers = req.session.user.friends.map((val) => val.uid); // 所有好友
+  providers.push(req.session.user.uid); // 加上自己
+  try {
+    const dest = await teamTranslator.get(
+      src,
+      srcLang as ISO963_1,
+      destLang as ISO963_1,
+      providers
+    );
+    res.json(dest);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(errBody(500, "服务器错误，获取翻译失败"));
   }
-);
+};
 
-router.delete(
-  "/:srcLang/:destLang/:src",
-  async (req: Request, res: Response) => {
-    const { src, srcLang, destLang } = req.params;
+/**
+ * ## 添加/更新翻译
+ * @param req 
+ * @param res 
+ */
+const addTranslate = async (req: Request, res: Response) => {
+  const { src, srcLang, dest, destLang } = req.params;
+  try {
+    await teamTranslator.add(
+      src,
+      srcLang as ISO963_1,
+      dest,
+      destLang as ISO963_1,
+      req.session.user.uid,
+      USER.PrivacyLabel.public
+    );
+    res.json({ msg: "提交翻译成功" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(errBody(500, "err"));
+  }
+};
+
+/**
+ * ## 删除翻译
+ * @param req 
+ * @param res 
+ */
+const deleteTranslate = async (req: Request, res: Response) => {
+  const { src, srcLang, destLang } = req.params;
+  try {
     await teamTranslator.delete(
       src,
       srcLang as ISO963_1,
       destLang as ISO963_1,
       req.session.user.uid
     );
-    res.send("删除成功");
+    res.send({ msg: "删除翻译成功" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(errBody(500, "服务器错误，删除翻译失败"));
   }
-);
+};
+
+router.get("/:srcLang/:destLang/:src", getTranslate);
+router.post("/:srcLang/:destLang/:src/:dest", addTranslate);
+router.delete("/:srcLang/:destLang/:src", deleteTranslate);
 
 export default router;
