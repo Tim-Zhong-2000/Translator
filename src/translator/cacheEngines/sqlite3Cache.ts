@@ -5,7 +5,11 @@
 
 import sqlite3 = require("sqlite3");
 import { CacheEngine } from "../abstract/cacheEngine";
-import { Payload, SqliteCacheConfig, TranslateLevel } from "../../type/Translator";
+import {
+  Payload,
+  SqliteCacheConfig,
+  TranslateLevel,
+} from "../../type/Translator";
 
 export class SqliteCache extends CacheEngine<sqlite3.Database> {
   constructor(config: SqliteCacheConfig) {
@@ -40,21 +44,16 @@ export class SqliteCache extends CacheEngine<sqlite3.Database> {
       this.serivceProviderName
     );
     const sqliteProc: Promise<Payload[]> = new Promise((resolve, reject) => {
-      const rows: Payload[] = [];
-      const stmt = this.db.prepare(
+      this.db.all(
         "SELECT level,src,dest,srcLang,destLang FROM cache \
-          WHERE hash=(?)"
-      );
-      stmt.run(reqHash);
-      stmt.each(
-        (_err, row: Payload) => rows.push(row),
-        (err, count) => {
+      WHERE hash=(?)",
+        reqHash,
+        (err: Error, rows: Payload[]) => {
           if (err) reject(new Error("数据库内部错误"));
-          else if (count === 0) reject(new Error("数据不存在"));
+          else if (rows.length === 0) reject(new Error("数据不存在"));
           else resolve(rows);
         }
       );
-      stmt.finalize();
     });
     try {
       const allResult = await sqliteProc;
@@ -68,16 +67,8 @@ export class SqliteCache extends CacheEngine<sqlite3.Database> {
 
   insert(payload: Payload) {
     if (!payload.success) throw new Error("you cant cache a fail payload");
-    const {
-      level,
-      src,
-      dest,
-      srcLang,
-      destLang,
-      tts,
-      ttsSrc,
-      ttsDest,
-    } = payload;
+    const { level, src, dest, srcLang, destLang, tts, ttsSrc, ttsDest } =
+      payload;
     const reqHash = CacheEngine.generateHashKey(
       src,
       srcLang,
