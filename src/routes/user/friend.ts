@@ -4,167 +4,115 @@
  */
 
 import express, { NextFunction, Request, Response } from "express";
-import { errBody } from "../../utils/errorPayload";
+import { checkPayload } from "../../utils/checkPayload";
+import { msgBody } from "../../utils/msgBody";
 import { checkLogin } from "../../utils/userSession";
 
 const router = express.Router();
 
 router.use(checkLogin());
 
-async function isUserExistInList(
-  req: Request,
-  friendId: number,
-  listname: "friends" | "friendreq" | "friendres"
-) {
-  const list = JSON.parse(
-    (await req.userService.findByUid(req.session.user.uid))[listname]
-  ) as number[];
-  if (list.indexOf(friendId) === -1) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
 // 获取缓存中的好友列表
 router.get("/list", async (req: Request, res: Response) => {
-  res.json(req.session.user.friends);
+  res.json(msgBody("获取缓存好友列表成功", req.session.user.friends));
 });
 
-// 更新好友列表
-router.copy("/list", async (req: Request, res: Response) => {
+// 更新缓存
+router.copy("/", checkPayload({}), async (req: Request, res: Response) => {
   try {
-    const friendList = await req.userService.getFriendDetail(
-      req.session.user.uid,
-      "friends"
+    const friendInfo = await req.userService.getFriendInfo(
+      req.session.user.uid
     );
-    req.session.user.friends = friendList;
-    res.json(friendList);
+    req.session.user.friends = friendInfo.friends;
+    req.session.user.friendreq = friendInfo.friendreq;
+    req.session.user.friendres = friendInfo.friendres;
+    res.json(msgBody("更新好友列表成功", friendInfo));
   } catch (err) {
-    res.status(500).json(errBody(500, "更新好友列表失败"));
+    res.status(500).json(msgBody("更新好友列表失败"));
   }
 });
 
-router.delete("/list/:friendid", async (req: Request, res: Response) => {
-  const friendId = Number(req.params.friendid);
-  try {
-    if (!(await isUserExistInList(req, friendId, "friends"))) {
-      res.status(400).json(errBody(400, "请求异常"));
-      return;
+router.delete(
+  "/list/:friendid",
+  checkPayload({}),
+  async (req: Request, res: Response) => {
+    const friendId = Number(req.params.friendid);
+    try {
+      const newFriendInfo = await req.userService.deleteFriend(
+        req.session.user.uid,
+        friendId
+      );
+      req.session.user.friends = newFriendInfo.friends;
+      res.json(msgBody("删除成功"));
+    } catch (err) {
+      res.status(500).json(msgBody("删除好友失败"));
     }
-  } catch (err) {
-    res.status(500).json(errBody(500, "数据库错误"));
   }
-  try {
-    await req.userService.deleteFriend(req.session.user.uid, friendId);
-    const friends = await req.userService.getFriendDetail(
-      req.session.user.uid,
-      "friends"
-    );
-    req.session.user.friends = friends;
-    res.json(friends);
-  } catch (err) {
-    res.status(500).json(errBody(500, "删除好友失败"));
-  }
-});
-
-// 更新好友请求发出列表
-router.copy("/req", async (req: Request, res: Response) => {
-  try {
-    const friendreq = await req.userService.getFriendDetail(
-      req.session.user.uid,
-      "friendreq"
-    );
-    req.session.user.friendreq = friendreq;
-    res.json(friendreq);
-  } catch (err) {
-    res.status(500).json(errBody(500, "更新状态失败"));
-  }
-});
+);
 
 // 发送好友请求
-router.post("/req/:friendid", async (req: Request, res: Response) => {
-  const friendId = Number(req.params.friendid);
-  try {
-    await req.userService.addFriend(req.session.user.uid, friendId);
-    const friendReq = await req.userService.getFriendDetail(
-      req.session.user.uid,
-      "friendreq"
-    );
-    req.session.user.friendreq = friendReq;
-    res.json(friendReq);
-  } catch (err) {
-    res.status(500).json(errBody(500, "添加好友失败"));
+router.post(
+  "/req/:friendid",
+  checkPayload({}),
+  async (req: Request, res: Response) => {
+    const friendId = Number(req.params.friendid);
+    try {
+      const newRequest = await req.userService.addFriend(
+        req.session.user.uid,
+        friendId
+      );
+      req.session.user.friendreq.push(newRequest.To);
+      res.json(msgBody("添加好友成功", newRequest));
+    } catch (err) {
+      res.status(500).json(msgBody("添加好友失败"));
+    }
   }
-});
-
-// 更新好友请求接收列表
-router.copy("/res", async (req: Request, res: Response) => {
-  try {
-    const friendres = await req.userService.getFriendDetail(
-      req.session.user.uid,
-      "friendres"
-    );
-    req.session.user.friendreq = friendres;
-    res.json(friendres);
-  } catch (err) {
-    res.status(500).json(errBody(500, "更新状态失败"));
-  }
-});
+);
 
 // 通过好友请求
-router.post("/res/:friendid", async (req: Request, res: Response) => {
-  const friendId = Number(req.params.friendid);
-  try {
-    if (!(await isUserExistInList(req, friendId, "friendres"))) {
-      res.status(400).json(errBody(400, "请求异常"));
-      return;
+router.post(
+  "/res/:friendid",
+  checkPayload({}),
+  async (req: Request, res: Response) => {
+    const friendId = Number(req.params.friendid);
+    try {
+      const result = await req.userService.passFriend(
+        req.session.user.uid,
+        friendId
+      );
+      req.session.user.friends.push(result.From);
+      const index = req.session.user.friendres
+        .map((f) => f.uid)
+        .indexOf(result.fromUid);
+      req.session.user.friendres.splice(index, 1);
+      res.json(msgBody("通过好友请求成功", result));
+    } catch (err) {
+      res.status(500).json(msgBody("通过好友申请失败"));
     }
-  } catch (err) {
-    res.status(500).json(errBody(500, "数据库错误"));
-    return;
   }
-  try {
-    await req.userService.permitFriend(req.session.user.uid, friendId);
-    const friendRes = await req.userService.getFriendDetail(
-      req.session.user.uid,
-      "friendres"
-    );
-    const friends = await req.userService.getFriendDetail(
-      req.session.user.uid,
-      "friends"
-    );
-    req.session.user.friendres = friendRes;
-    req.session.user.friends = friends;
-    res.json(friends);
-  } catch (err) {
-    res.status(500).json(errBody(500, "通过好友申请失败"));
-  }
-});
+);
 
 // 拒绝好友请求
-router.delete("/res/:friendid", async (req: Request, res: Response) => {
-  const friendId = Number(req.params.friendid);
-  try {
-    if (!(await isUserExistInList(req, friendId, "friendres"))) {
-      res.status(400).json(errBody(400, "请求异常"));
-      return;
+router.delete(
+  "/res/:friendid",
+  checkPayload({}),
+  async (req: Request, res: Response) => {
+    const friendId = Number(req.params.friendid);
+    try {
+      await req.userService.refuseFriend(req.session.user.uid, friendId);
+      const result = await req.userService.refuseFriend(
+        req.session.user.uid,
+        friendId
+      );
+      const index = req.session.user.friendres
+        .map((f) => f.uid)
+        .indexOf(friendId);
+      req.session.user.friendres.splice(index, 1);
+      res.json(msgBody("拒绝好友请求成功", result));
+    } catch (err) {
+      res.status(500).json(msgBody("拒绝好友申请失败"));
     }
-  } catch (err) {
-    res.status(500).json(errBody(500, "数据库错误"));
-    return;
   }
-  try {
-    await req.userService.refuseFriend(req.session.user.uid, friendId);
-    const friendRes = await req.userService.getFriendDetail(
-      req.session.user.uid,
-      "friendres"
-    );
-    req.session.user.friendres = friendRes;
-    res.json(friendRes);
-  } catch (err) {
-    res.status(500).json(errBody(500, "拒绝好友申请失败"));
-  }
-});
+);
 
 export default router;

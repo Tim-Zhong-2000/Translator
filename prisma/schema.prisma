@@ -2,8 +2,69 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  uid       Int         @id @default(autoincrement())
+  name      String
+  email     String      @unique
+  phone     String?     @unique
+  password  String
+  role      Int         @default(0)
+  create_at DateTime    @default(now())
+  is_delete Boolean     @default(false)
+  Translate Translate[]
+  OCR       OCR[]
+  From      Friend[]    @relation(name: "from")
+  To        Friend[]    @relation(name: "to")
+  Resource  Resource?
+}
+
+model Translate {
+  hash     String
+  src      String
+  dest     String
+  srcLang  String
+  destLang String
+  level    Int
+  privacy  Int
+  userUid  Int      @default(1)
+  time     DateTime @default(now())
+
+  Provider User @relation(fields: [userUid], references: [uid])
+
+  @@unique([hash, userUid])
+}
+
+model OCR {
+  User   User   @relation(fields: [userUid], references: [uid])
+  userUid Int
+
+  fileId String @id
+  result String
+  level  Int
+  
+}
+
+model Friend {
+  From    User    @relation(name: "from", fields: [fromUid], references: [uid])
+  To      User    @relation(name: "to", fields: [toUid], references: [uid])
+  fromUid Int
+  toUid   Int
+  
+  pass    Boolean
+
+  @@unique([fromUid, toUid])
+}
+
+model Resource {
+  userUid   Int  @id
+  User      User @relation(fields: [userUid], references: [uid])
+
+  translate Int  @default(0)
+  ocr       Int  @default(0)
 }
 
 generator client {

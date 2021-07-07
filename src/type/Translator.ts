@@ -28,29 +28,19 @@ export interface CacheIdentity {
   src: string;
   srcLang: string;
   destLang: string;
-  provider: string;
 }
-
-export interface CacheBase {
-  serviceProviderName: string; // 翻译服务提供商名称
-  db?: Database;
-}
-
-export interface MapCacheConfig extends CacheBase {}
-
-export interface SqliteCacheConfig extends CacheBase {}
 
 export interface Payload {
   success: boolean;
-  provider: string;
   level: TranslateLevel;
   src: string;
   dest: string;
   srcLang: string;
   destLang: string;
-  tts?: boolean;
-  ttsSrc?: string;
-  ttsDest?: string;
+  provider: {
+    uid: number;
+    name: string;
+  };
 }
 
 export interface FilterConfig {

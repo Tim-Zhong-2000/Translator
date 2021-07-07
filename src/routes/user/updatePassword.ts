@@ -5,7 +5,7 @@
 
 import express, { NextFunction, Request, Response } from "express";
 import { USER } from "../../type/User";
-import { errBody } from "../../utils/errorPayload";
+import { msgBody } from "../../utils/msgBody";
 import { checkLogin, roleControl } from "../../utils/userSession";
 
 const router = express.Router();
@@ -14,7 +14,7 @@ function chekcPayload() {
   return function (req: Request, res: Response, next: NextFunction) {
     const { newPassword } = req.body;
     if (!newPassword) {
-      res.status(400).json(errBody(400, "客户端错误，缺少newPassword字段"));
+      res.status(400).json(msgBody("客户端错误，缺少newPassword字段"));
       return;
     }
     next();
@@ -29,9 +29,9 @@ router
     const uid = req.session.user.uid;
     const { newPassword } = req.body;
     try {
-      res.json(await req.userService.update(uid, newPassword, "password"));
+      res.json(await req.userService.update(uid, { password: newPassword }));
     } catch (err) {
-      res.status(500).json(errBody(500, "修改密码失败", err.message));
+      res.status(500).json(msgBody("修改密码失败", err.message));
     }
   });
 
@@ -44,9 +44,9 @@ router
     const uid = Number(req.params.uid);
     const { newPassword } = req.body;
     try {
-      res.json(await req.userService.update(uid, newPassword, "password"));
+      res.json(await req.userService.update(uid, { password: newPassword }));
     } catch (err) {
-      res.status(500).json(errBody(500, "修改密码失败"));
+      res.status(500).json(msgBody("修改密码失败"));
     }
   });
 

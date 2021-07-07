@@ -13,6 +13,6 @@ export abstract class TranslateEngine {
   ): Promise<Payload>;
 
   abstract translate(src: string): Promise<Payload>;
-  
+
   abstract setConfig(config: any): void;
 }

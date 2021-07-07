@@ -2,58 +2,51 @@ import sqlite3 = require("sqlite3");
 import md5 from "md5";
 import { USER } from "../type/User";
 import { Database } from "../type/type";
+import { PrismaClient, User } from "@prisma/client";
 
-function errorHandler(err: USER.DBError) {
-  if (typeof err !== "number") return new Error("未知错误");
-  switch (err) {
-    case USER.DBError.AUTH_FAIL:
-      return new Error("用户不存在或密码错误");
-    case USER.DBError.NOT_EXIST:
-      return new Error("用户不存在");
-    case USER.DBError.COUNT_TOOMUCH:
-      return new Error("数据库异常，用户重复");
-    case USER.DBError.INTERNAL_ERROR:
-      return new Error("数据库内部错误");
-    case USER.DBError.TYPE_UNSAFE:
-      return new Error("检测到类型异常");
-    default:
-      return new Error("未知数据库错误");
-  }
-}
+const selectWithoutPassword = {
+  uid: true,
+  name: true,
+  email: true,
+  phone: true,
+  role: true,
+  create_at: true,
+  is_delete: true,
+};
+
+const selectUidNameRole = {
+  uid: true,
+  name: true,
+  role: true,
+};
 
 export class UserService {
-  db: sqlite3.Database;
+  db: PrismaClient;
   constructor(dbConfig: Database) {
-    this.db = new sqlite3.Database(dbConfig.host || ":memory:");
-    this.db.run(
-      "CREATE TABLE IF NOT EXISTS user(\
-        uid         INTEGER PRIMARY KEY   AUTOINCREMENT,\
-        email       TEXT                  NOT NULL,\
-        phone       TEXT                          ,\
-        nickname    TEXT                  NOT NULL,\
-        password    TEXT                  NOT NULL,\
-        role        INTEGER               NOT NULL,\
-        create_at   TEXT                  NOT NULL,\
-        friends     TEXT                  NOT NULL,\
-        friendreq   TEXT                  NOT NULL,\
-        friendres   TEXT                  NOT NULL,\
-        active      BOOLEAN               NOT NULL\
-      )",
-      async () => {
-        await this.register({
-          nickname: "admin",
-          email: "1@123.com",
-          password: "123456",
-        }).catch(() => {});
-        for (let i = 2; i < 50; i++) {
-          await this.register({
-            nickname: `test${i}`,
-            email: `${i}@123.com`,
-            password: "123456",
-          }).catch(() => {});
-        }
-      }
-    );
+    this.db = new PrismaClient();
+    this.initUser();
+  }
+
+  async initUser() {
+    try {
+      await this.register(
+        { name: "AI_1", email: "AI1", password: "123456" },
+        1
+      );
+    } catch (err) {}
+    try {
+      await this.register(
+        { name: "AI_2", email: "AI2", password: "123456" },
+        2
+      );
+    } catch (err) {}
+    try {
+      await this.register(
+        { name: "admin", email: "admin", password: "123456" },
+        3
+      );
+    } catch (err) {}
+    await this.update(3, { role: USER.Role.admin });
   }
 
   /**
@@ -62,137 +55,70 @@ export class UserService {
    * @param user 账号密码
    * @returns Promise<USER.UserDbItem> without password
    */
-  async login(user: USER.LoginPayload): Promise<USER.UserDbItem> {
-    try {
-      return await this.authUser(user.username, md5(user.password), "email");
-    } catch (err) {
-      throw errorHandler(err);
+  async login(payload: USER.LoginPayload): Promise<Omit<User, "password">> {
+    const user = await this.db.user.findUnique({
+      where: {
+        email: payload.email,
+      },
+    });
+    if (!user || user.password !== payload.password) {
+      throw new Error("邮箱不存在或密码错误");
+    } else {
+      delete user.password;
+      return user;
     }
   }
 
   /**
    * ## 新增用户(注册)
    * 失败时抛出Error类型错误
-   * @param user 注册payload
+   * @param payload 注册payload
    * @returns Promise<USER.UserDbItem> without password
    */
-  async register(user: USER.RegisterPayload) {
-    const { email, phone, password, nickname } = user;
-    if (
-      await this.findByEmail(email).catch(() => {
-        return false;
-      })
-    ) {
+  async register(payload: USER.RegisterPayload, uid?: number) {
+    const emailCount = await this.db.user.count({
+      where: {
+        email: payload.email,
+      },
+    });
+    if (emailCount !== 0) {
       throw new Error("邮箱已存在");
     }
-
-    if (phone)
-      if (
-        await this.findByPhone(phone).catch(() => {
-          return false;
-        })
-      ) {
-        throw new Error("手机号码已存在");
-      }
-
-    try {
-      await this.insertUser(email, nickname, md5(password), phone);
-      return await this.authUser(email, md5(password), "email");
-    } catch (err) {
-      throw errorHandler(err);
-    }
-  }
-
-  /**
-   * ## 用Email查找用户是否存在
-   * 失败时抛出Error类型错误
-   * @param email
-   * @returns Promise<USER.UserDbItem> without password
-   */
-  async findByEmail(email: string) {
-    try {
-      return await this.findActiveUser(email, "email");
-    } catch (err) {
-      throw errorHandler(err);
-    }
-  }
-
-  /**
-   * ## 用手机号码查找用户是否存在
-   * 失败时抛出Error类型错误
-   * @param phone
-   * @returns Promise<USER.UserDbItem> without password
-   */
-  async findByPhone(phone: string) {
-    try {
-      return await this.findActiveUser(phone, "phone");
-    } catch (err) {
-      throw errorHandler(err);
-    }
-  }
-
-  /**
-   * ## 用uid查找用户是否存在
-   * 失败时抛出Error类型错误
-   * @param uid
-   */
-  async findByUid(uid: number) {
-    try {
-      return await this.findActiveUser(uid, "uid");
-    } catch (err) {
-      throw errorHandler(err);
-    }
-  }
-
-  /**
-   * ## 删除账户
-   * 失败时抛出Error类型错误
-   * @param uid
-   * @returns 操作时间和操作uid
-   */
-  async delete(uid: number) {
-    try {
-      await this.deleteUser(uid);
-      return { now: Date.now(), uid: uid };
-    } catch (err) {
-      throw errorHandler(err);
-    }
-  }
-
-  /**
-   * ## 更新账号内容
-   * 失败时抛出Error类型错误
-   * @param uid 用户uid
-   * @param text 修改内容
-   * @param type 修改类型 "email" | "phone" | "nickname" | "password"
-   * @returns
-   */
-  async update(
-    uid: number,
-    text: string | number,
-    type: "email" | "phone" | "nickname" | "password" | "role"
-  ) {
-    try {
-      await this.updateUser(uid, text, type);
-      return { now: Date.now(), uid: uid };
-    } catch (err) {
-      throw errorHandler(err);
-    }
+    const newUser = await this.db.user.create({
+      data: {
+        uid: uid,
+        name: payload.name,
+        email: payload.email,
+        password: payload.password,
+        role: USER.Role.user,
+      },
+      select: selectWithoutPassword,
+    });
+    await this.db.resource.create({
+      data: {
+        User: { connect: { uid: newUser.uid } },
+        translate: 10000,
+        ocr: 500,
+      },
+    });
+    return newUser;
   }
 
   /**
    * ## 列出用户列表
-   * 失败时抛出Error类型错误
    * @param limit 获取数量
    * @param offset 偏移量
    * @returns 用户列表 USER.UserDbItem[] without password
    */
-  async listUser(limit: number, offset: number) {
-    try {
-      return await this.listUserBase(limit, offset);
-    } catch (err) {
-      throw errorHandler(err);
-    }
+  async listUser(
+    limit: number,
+    offset: number
+  ): Promise<Omit<User, "password">[]> {
+    return await this.db.user.findMany({
+      select: selectWithoutPassword,
+      take: limit,
+      skip: offset,
+    });
   }
 
   /**
@@ -202,12 +128,16 @@ export class UserService {
    * @param offset 偏移量
    * @returns 用户列表 USER.UserDbItem[] without password
    */
-  async listActiveUser(limit = 100, offset = 0) {
-    try {
-      return await this.listUserBase(limit, offset, "WHERE active=true");
-    } catch (err) {
-      throw errorHandler(err);
-    }
+  async listActiveUser(
+    limit = 100,
+    offset = 0
+  ): Promise<Omit<User, "password">[]> {
+    return await this.db.user.findMany({
+      where: { is_delete: false },
+      select: selectWithoutPassword,
+      take: limit,
+      skip: offset,
+    });
   }
 
   /**
@@ -217,47 +147,48 @@ export class UserService {
    * @param offset 偏移量
    * @returns 用户列表 USER.UserDbItem[] without password
    */
-  async listInactiveUser(limit = 100, offset = 0) {
-    try {
-      return await this.listUserBase(limit, offset, "WHERE active=false");
-    } catch (err) {
-      throw errorHandler(err);
-    }
+  async listInactiveUser(
+    limit = 100,
+    offset = 0
+  ): Promise<Omit<User, "password">[]> {
+    return await this.db.user.findMany({
+      where: { is_delete: false },
+      select: selectWithoutPassword,
+      take: limit,
+      skip: offset,
+    });
   }
 
   /**
    * ## 根据uid范围获取用户列表
-   * 失败时抛出Error类型错误
    * @param uidStart 起始uid
    * @param uidEnd 终止uid
    * @param limit 获取数量
    * @param offset 偏移量
-   * @returns 用户列表 USER.UserDbItem[] without password
+   * @returns 用户列表 User without password
    */
   async listUserByUidRange(
     uidStart: number,
     uidEnd: number,
     limit = 100,
     offset = 0
-  ) {
-    try {
-      if (typeof uidStart === "number" && typeof uidEnd === "number") {
-        return await this.listUserBase(
-          limit,
-          offset,
-          `WHERE uid>=${uidStart} AND uid<=${uidEnd}`
-        );
-      } else {
-        throw USER.DBError.TYPE_UNSAFE;
-      }
-    } catch (err) {
-      throw errorHandler(err);
-    }
+  ): Promise<Omit<User, "password">[]> {
+    return await this.db.user.findMany({
+      where: {
+        is_delete: false,
+        uid: {
+          gte: uidStart,
+          lte: uidEnd,
+        },
+      },
+      select: selectWithoutPassword,
+      take: limit,
+      skip: offset,
+    });
   }
 
   /**
    * ## 根据创建时间范围获取用户列表
-   * 失败时抛出Error类型错误
    * @param timeStart 起始时间
    * @param timeEnd 终止时间
    * @param limit 获取数量
@@ -269,336 +200,121 @@ export class UserService {
     timeEnd: number,
     limit = 100,
     offset = 0
-  ) {
-    try {
-      if (typeof timeStart === "number" && typeof timeEnd === "number") {
-        return await this.listUserBase(
-          limit,
-          offset,
-          `WHERE uid>=${timeStart} AND uid<=${timeEnd}`
-        );
-      } else {
-        throw USER.DBError.TYPE_UNSAFE;
-      }
-    } catch (err) {
-      throw errorHandler(err);
-    }
+  ): Promise<Omit<User, "password">[]> {
+    return await this.db.user.findMany({
+      where: {
+        create_at: {
+          gte: new Date(timeStart),
+          lte: new Date(timeEnd),
+        },
+      },
+      select: selectWithoutPassword,
+      take: limit,
+      skip: offset,
+    });
+  }
+
+  async update(uid: number, payload: Partial<Omit<User, "uid" | "create_at">>) {
+    return await this.db.user.update({
+      where: {
+        uid: uid,
+      },
+      data: payload,
+      select: selectWithoutPassword,
+    });
   }
 
   /**
-   * ## 访问用户列表的基础操作
-   * 失败时抛出USER.DBError类型错误
-   * @param limit 获取数量
-   * @param offset 偏移量
-   * @param statments 条件约束(警告：需要防止sql注入)
-   * @returns
+   * 获取好友列表
    */
-  private listUserBase(limit: number, offset: number, statments = "") {
-    return new Promise<USER.UserDbItem[]>((resolve, reject) => {
-      if (typeof limit === "number" && typeof offset === "number") {
-        const result: USER.UserDbItem[] = [];
-        const stmt = this.db.prepare(
-          `SELECT * FROM user ${statments} LIMIT ${limit} OFFSET ${offset}`
-        );
-        stmt.run();
-        stmt.each(
-          (_err, row) => {
-            delete row.password;
-            result.push(row);
+  async getFriendInfo(uid: number) {
+    const myRelation = await this.db.user.findUnique({
+      where: {
+        uid,
+      },
+      include: {
+        From: {
+          include: {
+            To: {
+              select: selectUidNameRole,
+            },
           },
-          (err, _count) => {
-            if (err) reject(USER.DBError.INTERNAL_ERROR);
-            else resolve(result);
-          }
-        );
-      } else {
-        reject(USER.DBError.TYPE_UNSAFE);
-      }
-    });
-  }
-
-  /**
-   * ## 验证用户密码
-   * 失败时抛出USER.DBError类型错误
-   * @param text 搜索文本 uid: number | email: string | phone: string
-   * @param password 哈希后的密码
-   * @param type "uid" | "email" | "phone"
-   * @returns Promise<USER.UserDbItem> without password
-   */
-  private async authUser(
-    text: string | number,
-    password: string,
-    type: "uid" | "email" | "phone"
-  ): Promise<USER.UserDbItem> {
-    return new Promise((resolve, reject) => {
-      let result: USER.UserDbItem = null;
-      const stmt = this.db.prepare(
-        `SELECT * FROM user WHERE ${type}=(?) AND password=(?) AND active=true`
-      );
-      stmt.run(text, password);
-      stmt.each(
-        (_err, row: USER.UserDbItem) => {
-          delete row.password;
-          result = row;
         },
-        (err, count) => {
-          if (err) reject(USER.DBError.INTERNAL_ERROR);
-          else if (count === 0) reject(USER.DBError.AUTH_FAIL);
-          else if (count === 1) resolve(result);
-          else reject(USER.DBError.COUNT_TOOMUCH);
-        }
-      );
-      stmt.finalize();
-    });
-  }
-
-  /**
-   * ## 查找已启用用户
-   * @param text 搜索文本 uid: number | email: string | phone: string
-   * @param type 文本类型 "uid" | "email" | "phone"
-   * @returns Promise<USER.UserDbItem> without password
-   */
-  findActiveUser(text: string | number, type: "uid" | "email" | "phone") {
-    return this.findUserBase(text, type, true);
-  }
-
-  /**
-   * ## 查找已禁用用户
-   * @param text 搜索文本 uid: number | email: string | phone: string
-   * @param type 文本类型 "uid" | "email" | "phone"
-   * @returns Promise<USER.UserDbItem> without password
-   */
-  findInactiveUser(text: string | number, type: "uid" | "email" | "phone") {
-    return this.findUserBase(text, type, false);
-  }
-
-  async getFriendDetail(
-    uid: number,
-    listname: "friends" | "friendreq" | "friendres"
-  ) {
-    const dbItem = await this.findByUid(uid);
-    const list = JSON.parse(dbItem[listname]) as number[];
-    if (list.length === 0) return [];
-    let sql = "SELECT uid,nickname FROM user WHERE"
-      .concat(" uid=? OR".repeat(list.length - 1))
-      .concat(" uid=?");
-    return new Promise<{ uid: number; nickname: string }[]>(
-      (resolve, reject) => {
-        this.db.all(
-          sql,
-          list,
-          (err: Error, rows: { uid: number; nickname: string }[]) => {
-            if (err) reject(err);
-            else resolve(rows);
-          }
-        );
-      }
-    );
-  }
-
-  /**
-   * 发送好友请求
-   * @param uid
-   * @param friend 添加的好友id
-   */
-  async addFriend(uid: number, friend: number) {
-    await this.findByUid(friend); // 判断用户是否存在
-    await this.addToFriendList(uid, friend, "friendreq");
-    try {
-      await this.addToFriendList(friend, uid, "friendres");
-    } catch (err) {
-      await this.removeFromFriendList(uid, friend, "friendreq"); // redo
-    }
-  }
-
-  /**
-   * 双向删除好友
-   * @param uid
-   * @param friend 添加的好友id
-   */
-  async deleteFriend(uid: number, friend: number) {
-    await this.removeFromFriendList(uid, friend, "friends");
-    try {
-      await this.removeFromFriendList(friend, uid, "friends");
-    } catch (err) {
-      await this.addToFriendList(uid, friend, "friends");
-    }
-  }
-
-  /**
-   * 通过好友请求
-   * @param uid
-   * @param friend 添加的好友id
-   */
-  async permitFriend(uid: number, friend: number) {
-    await this.removeFromFriendList(uid, friend, "friendres");
-    await this.addToFriendList(uid, friend, "friends");
-    await this.removeFromFriendList(friend, uid, "friendreq");
-    await this.addToFriendList(friend, uid, "friends");
-  }
-
-  /**
-   * 拒绝好友请求
-   * @param uid
-   * @param friend 拒绝的好友id
-   */
-  async refuseFriend(uid: number, friend: number) {
-    await this.removeFromFriendList(uid, friend, "friendres");
-    await this.removeFromFriendList(friend, uid, "friendreq");
-  }
-
-  private async removeFromFriendList(
-    uid: number,
-    friend: number,
-    listname: "friends" | "friendreq" | "friendres"
-  ) {
-    let friendList = JSON.parse(
-      (await this.findByUid(uid))[listname]
-    ) as number[];
-    const index = friendList.indexOf(friend);
-    if (index < 0) {
-      throw new Error(`${uid} List: friend ${friend} not exist in ${listname}`);
-    }
-    friendList.splice(index, 1);
-    await this.updateUser(uid, JSON.stringify(friendList), listname);
-  }
-
-  private async addToFriendList(
-    uid: number,
-    friend: number,
-    listname: "friends" | "friendreq" | "friendres"
-  ) {
-    if (uid === friend) throw new Error("cannot add yourself");
-    const friendList = JSON.parse(
-      (await this.findByUid(uid))[listname]
-    ) as number[];
-    const index = friendList.indexOf(friend);
-    if (index !== -1) {
-      throw new Error(
-        `${uid} List: friend ${friend} already exist in ${listname}`
-      );
-    }
-    friendList.push(friend);
-    await this.updateUser(uid, JSON.stringify(friendList), listname);
-  }
-
-  /**
-   * 查找用户的基础函数
-   * @param text 内容类型 uid: number | email: string | phone: string
-   * @param type 文本类型 "uid" | "email" | "phone"
-   * @param active 账户是否启用
-   * @returns Promise<USER.UserDbItem> without password
-   */
-  private findUserBase(
-    text: string | number,
-    type: "uid" | "email" | "phone",
-    active: boolean
-  ) {
-    return new Promise<USER.UserDbItem>((resolve, reject) => {
-      let result: USER.UserDbItem = null;
-      const stmt = this.db.prepare(
-        `SELECT * FROM user WHERE ${type}=(?) AND active=(?) LIMIT 1`
-      );
-      stmt.run(text, active);
-      stmt.each(
-        (_err, row: USER.UserDbItem) => {
-          delete row.password;
-          result = row;
+        To: {
+          include: {
+            From: {
+              select: selectUidNameRole,
+            },
+          },
         },
-        (err, count) => {
-          if (err) reject(USER.DBError.INTERNAL_ERROR);
-          else if (count === 0) reject(USER.DBError.NOT_EXIST);
-          else resolve(result);
-        }
-      );
-      stmt.finalize();
+      },
+    });
+    const passFrom = myRelation.From.filter((r) => r.pass).map((r) => r.To);
+    const passTo = myRelation.To.filter((r) => r.pass).map((r) => r.From);
+    const unpassFrom = myRelation.From.filter((r) => !r.pass).map((r) => r.To);
+    const unpassTo = myRelation.To.filter((r) => !r.pass).map((r) => r.From);
+    return {
+      friends: passFrom.concat(passTo),
+      friendreq: unpassFrom,
+      friendres: unpassTo,
+    };
+  }
+
+  async deleteFriend(uid: number, friendUid: number) {
+    const friendInfo = await this.getFriendInfo(uid);
+    if (friendInfo.friends.filter((f) => f.uid === friendUid).length === 0) {
+      throw new Error("不存在好友关系无法删除");
+    }
+    await this.db.friend.deleteMany({
+      where: {
+        OR: [
+          { fromUid: uid, toUid: friendUid },
+          {
+            fromUid: friendUid,
+            toUid: uid,
+          },
+        ],
+      },
+    });
+    return await this.getFriendInfo(uid);
+  }
+
+  async addFriend(uid: number, friendUid: number) {
+    return await this.db.friend.create({
+      data: {
+        From: { connect: { uid: uid } },
+        To: { connect: { uid: friendUid } },
+        pass: false,
+      },
+      select: {
+        To: { select: selectUidNameRole },
+      },
     });
   }
 
-  /**
-   * ## 新增用户
-   * 失败时抛出USER.DBError类型错误
-   * @param email
-   * @param nickname
-   * @param password
-   * @param phone
-   * @returns Promise<boolean>
-   */
-  private async insertUser(
-    email: string,
-    nickname: string,
-    password: string,
-    phone?: string
-  ) {
-    return new Promise<boolean>((resolve, reject) => {
-      const stmt = this.db.prepare(
-        "INSERT INTO user VALUES (?,?,?,?,?,?,?,?,?,?,?)"
-      );
-      stmt.run(
-        null,
-        email,
-        phone,
-        nickname,
-        password,
-        USER.Role.guest,
-        Date.now(),
-        "[]",
-        "[]",
-        "[]",
-        true
-      );
-      stmt.finalize((err) => {
-        if (err) reject(USER.DBError.INTERNAL_ERROR);
-        else resolve(true);
-      });
+  async passFriend(uid: number, friendUid: number) {
+    return await this.db.friend.update({
+      where: {
+        fromUid_toUid: {
+          fromUid: friendUid,
+          toUid: uid,
+        },
+      },
+      data: { pass: true },
+      include: {
+        From: { select: selectUidNameRole },
+      },
     });
   }
 
-  /**
-   * ## 删除用户
-   * 失败时抛出USER.DBError类型错误
-   * @param uid
-   * @returns Promise<boolean>
-   */
-  private async deleteUser(uid: number) {
-    return new Promise<boolean>((resolve, reject) => {
-      const stmt = this.db.prepare("UPDATE user SET active=(?) WHERE uid=(?)");
-      stmt.run(true, uid);
-      stmt.finalize((err) => {
-        if (err) reject(USER.DBError.INTERNAL_ERROR);
-        else resolve(true);
-      });
-    });
-  }
-
-  /**
-   * ## 更新用户信息
-   * 失败时抛出USER.DBError类型错误
-   * @param uid
-   * @param text 内容类型 uid: number | email: string | phone: string
-   * @param type 文本类型 "uid" | "email" | "phone" | "friends"
-   * @returns Promise<boolean>
-   */
-  private async updateUser(
-    uid: number,
-    text: string | number,
-    type:
-      | "email"
-      | "phone"
-      | "nickname"
-      | "password"
-      | "role"
-      | "friends"
-      | "friendreq"
-      | "friendres"
-  ) {
-    return new Promise<boolean>((resolve, reject) => {
-      const stmt = this.db.prepare(`UPDATE user SET ${type}=(?) WHERE uid=(?)`);
-      stmt.run(text, uid);
-      stmt.finalize((err) => {
-        if (err) reject(USER.DBError.INTERNAL_ERROR);
-        else resolve(true);
-      });
+  async refuseFriend(uid: number, friendUid: number) {
+    return await this.db.friend.delete({
+      where: {
+        fromUid_toUid: {
+          fromUid: friendUid,
+          toUid: uid,
+        },
+      },
     });
   }
 }

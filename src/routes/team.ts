@@ -6,7 +6,7 @@ import express, { Request, Response, NextFunction } from "express";
 import { TeamTrans } from "../team-trans";
 import ISO963_1 from "../type/ISO963";
 import { USER } from "../type/User";
-import { errBody } from "../utils/errorPayload";
+import { msgBody } from "../utils/msgBody";
 import { checkLogin } from "../utils/userSession";
 
 const teamTranslator = new TeamTrans();
@@ -34,7 +34,7 @@ const getTranslate = async (req: Request, res: Response) => {
     res.json(dest);
   } catch (err) {
     console.error(err);
-    res.status(500).json(errBody(500, "服务器错误，获取翻译失败"));
+    res.status(500).json(msgBody("服务器错误，获取翻译失败"));
   }
 };
 
@@ -57,7 +57,7 @@ const addTranslate = async (req: Request, res: Response) => {
     res.json({ msg: "提交翻译成功" });
   } catch (err) {
     console.error(err);
-    res.status(500).json(errBody(500, "err"));
+    res.status(500).json(msgBody("服务器错误，提交失败"));
   }
 };
 
@@ -78,7 +78,7 @@ const deleteTranslate = async (req: Request, res: Response) => {
     res.send({ msg: "删除翻译成功" });
   } catch (err) {
     console.error(err);
-    res.status(500).json(errBody(500, "服务器错误，删除翻译失败"));
+    res.status(500).json(msgBody("服务器错误，删除翻译失败"));
   }
 };
 

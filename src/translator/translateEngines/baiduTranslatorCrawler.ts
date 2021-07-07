@@ -25,7 +25,10 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
   /**
    * @param config 百度翻译配置
    */
-  constructor(config?: BaiduTranslatorConfig) {
+  constructor(
+    private provider: { uid: number; name: string },
+    config?: BaiduTranslatorConfig
+  ) {
     super();
     if (!!config) {
       this.configReady = true;
@@ -125,19 +128,20 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
         src,
         src,
         srcLang,
-        destLang
+        destLang,
+        this.provider
       );
     }
+
     if (!this.configReady)
       throw new Error("Please WAIT: auto config is not finished");
-    const header = this.getHeader();
-    const body = this.getBody(src, srcLang, destLang);
+
     const res = await axios.post(
       `https://fanyi.baidu.com/v2transapi?from=${getBaiduLangCode(
         srcLang
       )}&to=${getBaiduLangCode(destLang)}`,
-      body,
-      { headers: header }
+      this.getBody(src, srcLang, destLang),
+      { headers: this.getHeader() }
     );
     try {
       return generatePayload(
@@ -146,7 +150,8 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
         src,
         res.data["trans_result"]["data"][0]["dst"] as string,
         srcLang,
-        destLang
+        destLang,
+        this.provider
       );
     } catch (error) {
       return generatePayload(
@@ -155,7 +160,8 @@ export class BaiduTranslatorCrawler extends TranslateEngine {
         src,
         `${res.data.errmsg}: ${res.data.errno}`,
         srcLang,
-        destLang
+        destLang,
+        this.provider
       );
     }
   }

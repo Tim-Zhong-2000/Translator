@@ -4,7 +4,7 @@
  */
 
 import express, { Request, Response } from "express";
-import { errBody } from "../../utils/errorPayload";
+import { msgBody } from "../../utils/msgBody";
 import { checkLogin } from "../../utils/userSession";
 
 const router = express.Router();
@@ -13,7 +13,7 @@ function destroySession() {
   return function (req: Request, res: Response) {
     req.session.destroy((err) => {
       if (err) {
-        res.status(500).json(errBody(500, "Remove Session Error"));
+        res.status(500).json(msgBody("Remove Session Error"));
       } else {
         res.send("Logout Successfully");
       }
@@ -21,6 +21,6 @@ function destroySession() {
   };
 }
 
-router.get("/", checkLogin()).get("/", destroySession());
+router.get("/", checkLogin(), destroySession());
 
 export default router;

@@ -1,15 +1,27 @@
+import { Friend, User } from "@prisma/client";
+
 export namespace USER {
   export interface LoginPayload {
-    username: string;
+    email: string;
     password: string;
   }
 
+  export interface Entity {
+    uid: number;
+    email: number;
+    phone: number;
+    password: number;
+    name: string;
+    role: Role;
+    create_at: number;
+    isDelete: number;
+  }
   export interface UserDbItem {
     uid: number;
     email: string;
     phone?: string;
     password: string;
-    nickname: string;
+    name: string;
     role: Role;
     create_at: string;
     isDelete: boolean;
@@ -19,25 +31,36 @@ export namespace USER {
   }
 
   export interface RegisterPayload {
-    nickname: string;
+    name: string;
     email: string;
-    phone?: string;
     password: string;
   }
 
   export interface Session {
     uid: number;
-    nickname: string;
+    name: string;
     email: string;
     phone?: string;
     role: Role;
-    friends: { uid: number; nickname: string }[];
-    friendreq: { uid: number; nickname: string }[];
-    friendres: { uid: number; nickname: string }[];
+    friends: {
+      uid: number;
+      name: string;
+      role: number;
+    }[];
+    friendreq: {
+      uid: number;
+      name: string;
+      role: number;
+    }[];
+    friendres: {
+      uid: number;
+      name: string;
+      role: number;
+    }[];
   }
 
   export interface Info {
-    nickname: string;
+    name: string;
     email: string;
     phone?: string;
   }

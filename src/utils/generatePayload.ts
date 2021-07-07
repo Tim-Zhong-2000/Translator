@@ -7,7 +7,10 @@ export function generatePayload(
   dest: string,
   srcLang: string,
   destLang: string,
-  provider = "AI"
+  provider: {
+    uid: number;
+    name: string;
+  }
 ): Payload {
   return {
     success: success,

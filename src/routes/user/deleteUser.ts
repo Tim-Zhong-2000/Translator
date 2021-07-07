@@ -5,21 +5,24 @@
 
 import express, { NextFunction, Request, Response } from "express";
 import { checkPayload } from "../../utils/checkPayload";
-import { errBody } from "../../utils/errorPayload";
+import { msgBody } from "../../utils/msgBody";
 import { checkLogin } from "../../utils/userSession";
 
 const router = express.Router();
 
+/**
+ * ## 中间件 - 检查删除的对象是否是自己
+ * @returns 
+ */
 function checkInfo() {
   return function (req: Request, res: Response, next: NextFunction) {
-    const { nickname, email } = req.session.user;
-    const { nickname2, email2 } = req.body;
-    if (nickname === nickname2 && email === email2) {
+    const { name, email } = req.session.user;
+    if (name === req.body.name && email === req.body.email) {
       next();
     } else {
       res
         .status(403)
-        .json(errBody(403, "信息不匹配，请再次确认将要删除的账号"));
+        .json(msgBody("信息不匹配，请再次确认将要删除的账号"));
     }
   };
 }
@@ -37,11 +40,11 @@ router
   .post("/", async (req: Request, res: Response) => {
     const { uid } = req.session.user;
     try {
-      res.json(await req.userService.delete(uid));
+      res.json(await req.userService.update(uid, { is_delete: true }));
     } catch (err) {
       res
         .status(500)
-        .json(errBody(500, "服务器错误，删除用户失败", err.message));
+        .json(msgBody("服务器错误，删除用户失败"));
     }
   });
 

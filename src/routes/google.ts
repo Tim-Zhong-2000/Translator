@@ -9,20 +9,20 @@ import CONFIG from "../utils/config";
 import { DefaultTranslatorManager } from "../translator/translateManager/DefaultTranslatorManager";
 import { DefaultFilter } from "../translator/filter/filter";
 import { GoogleTranslatorCrawler } from "../translator/translateEngines/googleTranslatorCrawler";
-import { SqliteCache } from "../translator/cacheEngines/sqlite3Cache";
-import { errBody } from "../utils/errorPayload";
 import { LangList } from "../translator/langlist";
+import { PrismaCache } from "../translator/cacheEngines/prismaCache";
+import { msgBody } from "../utils/msgBody";
 
 const router = express.Router();
 
 // 初始化谷歌翻译
+const providerAccount = { uid: 3, name: "谷歌翻译" };
 if (CONFIG["google"].enabled) {
   const googleTranslatorCrawler = new GoogleTranslatorCrawler(
+    providerAccount,
     CONFIG["google"].translatorSetting
   );
-  const googleTranslatorCrawlerCache = new SqliteCache(
-    CONFIG["google"].cacheSetting
-  );
+  const googleTranslatorCrawlerCache = new PrismaCache(providerAccount);
   const googleTranslatorCrawlerFilter = new DefaultFilter(
     CONFIG["google"].filterSetting
   );
@@ -43,7 +43,7 @@ if (CONFIG["google"].enabled) {
   });
 } else {
   router.use((_req, res) => {
-    res.status(400).json(errBody(400, "谷歌翻译服务未启用"));
+    res.status(400).json(msgBody("谷歌翻译服务未启用"));
   });
 }
 

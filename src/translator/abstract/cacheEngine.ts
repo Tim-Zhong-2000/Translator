@@ -22,17 +22,11 @@ export abstract class CacheEngine<T> {
     return md5(str);
   }
 
-  static generateHashKey(
-    src: string,
-    srcLang: string,
-    destLang: string,
-    provider: string
-  ) {
+  static generateHashKey(src: string, srcLang: string, destLang: string) {
     const origin: CacheIdentity = {
       src: src,
       srcLang: srcLang,
       destLang: destLang,
-      provider: provider,
     };
     return this.hash(JSON.stringify(origin));
   }

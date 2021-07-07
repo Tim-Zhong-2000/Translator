@@ -25,7 +25,11 @@ export class BaiduTranslatorAPI extends TranslateEngine {
     return this.APPID === "" && this.KEY === "";
   }
 
-  constructor(config: BaiduTranslatorAPIConfig) {
+  constructor(
+    private provider: { uid: number; name: string },
+
+    config: BaiduTranslatorAPIConfig,
+  ) {
     super();
     if (!!config) {
       this.setConfig(config);
@@ -54,7 +58,11 @@ export class BaiduTranslatorAPI extends TranslateEngine {
         src,
         src,
         srcLang,
-        destLang
+        destLang,
+        {
+          uid: -1,
+          name: "none",
+        }
       );
     }
     if (this.isConfigEmpty) {
@@ -64,7 +72,11 @@ export class BaiduTranslatorAPI extends TranslateEngine {
         src,
         "此翻译服务器未设置API账户",
         srcLang,
-        destLang
+        destLang,
+        {
+          uid: -1,
+          name: "none",
+        }
       );
     }
     const res = await axios.get(
@@ -75,21 +87,15 @@ export class BaiduTranslatorAPI extends TranslateEngine {
     );
     if (!!res && !!res.data) {
       try {
-        let Payload = generatePayload(
+        return generatePayload(
           true,
           TranslateLevel.AI,
           src,
           res.data.trans_result[0].dst as string,
           srcLang,
-          destLang
+          destLang,
+          this.provider
         );
-        if (this.ttsEnabled) {
-          Payload = Object.assign(Payload, {
-            ttsSrc: res.data["src_tts"],
-            ttsDest: res.data["dst_tts"],
-          } as Payload);
-        }
-        return Payload;
       } catch (error) {
         return generatePayload(
           false,
@@ -97,7 +103,8 @@ export class BaiduTranslatorAPI extends TranslateEngine {
           src,
           `错误码：${res.data.error_code}`,
           srcLang,
-          destLang
+          destLang,
+          this.provider
         );
       }
     }

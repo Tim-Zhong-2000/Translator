@@ -45,7 +45,11 @@ export class DefaultTranslatorManager<
           src,
           filterResult.text,
           srcLang,
-          destLang
+          destLang,
+          {
+            uid: -1,
+            name: "system",
+          }
         );
       case FilterType.BLOCK:
         console.log(`BAN:\t${src}`);
@@ -55,7 +59,11 @@ export class DefaultTranslatorManager<
           "",
           filterResult.text,
           srcLang,
-          destLang
+          destLang,
+          {
+            uid: -1,
+            name: "none",
+          }
         );
     }
 
@@ -65,14 +73,18 @@ export class DefaultTranslatorManager<
       payload.success = true;
       return payload;
     } catch (err) {
-      console.log(err)
+      console.log(err);
     } finally {
       console.timeEnd("readCache");
     }
 
     try {
       console.time("translate");
-      const payload = await this.translateEngine.translate(src, srcLang, destLang);
+      const payload = await this.translateEngine.translate(
+        src,
+        srcLang,
+        destLang
+      );
       this.writeCache(payload);
       return payload;
     } catch (err) {
@@ -82,7 +94,11 @@ export class DefaultTranslatorManager<
         src,
         err.message,
         srcLang,
-        destLang
+        destLang,
+        {
+          uid: -1,
+          name: "none",
+        }
       );
     } finally {
       console.timeEnd("translate");
@@ -98,6 +114,10 @@ export class DefaultTranslatorManager<
     srcLang: string,
     destLang: string
   ): Promise<Payload> {
-    return this.cacheEngine.fetch(src, srcLang, destLang);
+    return this.cacheEngine.fetch(
+      src,
+      srcLang,
+      destLang
+    );
   }
 }

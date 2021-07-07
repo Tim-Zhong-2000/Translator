@@ -13,7 +13,7 @@ import { getGoogleLangCode } from "../../utils/LangCode";
 export class GoogleTranslatorCrawler extends TranslateEngine {
   UA = "";
 
-  constructor(config: any) {
+  constructor(private provider: { uid: number; name: string }, config: any) {
     super();
     if (!!config) {
       this.setConfig(config);
@@ -42,7 +42,8 @@ export class GoogleTranslatorCrawler extends TranslateEngine {
         src,
         "服务器翻译服务错误",
         srcLang,
-        destLang
+        destLang,
+        this.provider
       );
     } else {
       return generatePayload(
@@ -51,7 +52,8 @@ export class GoogleTranslatorCrawler extends TranslateEngine {
         src,
         dest,
         srcLang,
-        destLang
+        destLang,
+        this.provider
       );
     }
   }
