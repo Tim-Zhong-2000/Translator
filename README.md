@@ -7,7 +7,7 @@
 - [x] 翻译上游 - 百度翻译api
 - [x] 翻译上游 - 谷歌翻译web
 - [x] 合作翻译模块`team-trans`
-- [ ] OCR上游 - Paddle
+- [x] OCR上游 - Paddle
 - [ ] OCR上游 - Tesseract
 - [ ] 语种识别
 - [ ] TTS上游 - 讯飞
